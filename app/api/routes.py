@@ -52,7 +52,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/health")
-def health():
+def health_check():
     """
     Health check endpoint.
     """
