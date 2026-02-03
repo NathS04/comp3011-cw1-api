@@ -15,7 +15,16 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         logger.info(f"{request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s")
         return response
 
+from .exceptions import NotFoundException, DuplicateException, AuthException
+
 async def global_exception_handler(request: Request, exc: Exception):
+    if isinstance(exc, NotFoundException):
+        return JSONResponse(status_code=404, content={"detail": f"{exc.name} not found"})
+    if isinstance(exc, DuplicateException):
+        return JSONResponse(status_code=409, content={"detail": f"{exc.name} already exists"})
+    if isinstance(exc, AuthException):
+         return JSONResponse(status_code=401, content={"detail": exc.detail}, headers={"WWW-Authenticate": "Bearer"})
+
     logger.error(f"Global exception: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=500,
