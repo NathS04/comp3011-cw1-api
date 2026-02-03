@@ -87,3 +87,17 @@ def get_event_stats(db: Session, event: Event):
     not_going = int(counts.get("not_going", 0))
     remaining = max(int(event.capacity) - going, 0)
     return {"event_id": event.id, "going": going, "maybe": maybe, "not_going": not_going, "remaining_capacity": remaining}
+
+def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
+    return db.execute(select(models.User).where(models.User.username == username)).scalars().first()
+
+def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
+    return db.execute(select(models.User).where(models.User.email == email)).scalars().first()
+
+def create_user(db: Session, data: schemas.UserCreate, hashed_pw: str) -> models.User:
+    obj = models.User(username=data.username, email=data.email, hashed_password=hashed_pw)
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
