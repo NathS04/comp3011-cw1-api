@@ -7,8 +7,8 @@ from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .models import Event, Attendee, RSVP
-from .schemas import EventCreate, EventUpdate, AttendeeCreate, RSVPCreate
+from .models import Event, Attendee, RSVP, User
+from .schemas import EventCreate, EventUpdate, AttendeeCreate, RSVPCreate, UserCreate
 
 def create_event(db: Session, data: EventCreate) -> Event:
     obj = Event(**data.model_dump())
@@ -116,14 +116,14 @@ def get_event_stats(db: Session, event: Event):
     remaining = max(int(event.capacity) - going, 0)
     return {"event_id": event.id, "going": going, "maybe": maybe, "not_going": not_going, "remaining_capacity": remaining}
 
-def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
-    return db.execute(select(models.User).where(models.User.username == username)).scalars().first()
+def get_user_by_username(db: Session, username: str) -> Optional[User]:
+    return db.execute(select(User).where(User.username == username)).scalars().first()
 
-def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
-    return db.execute(select(models.User).where(models.User.email == email)).scalars().first()
+def get_user_by_email(db: Session, email: str) -> Optional[User]:
+    return db.execute(select(User).where(User.email == email)).scalars().first()
 
-def create_user(db: Session, data: schemas.UserCreate, hashed_pw: str) -> models.User:
-    obj = models.User(username=data.username, email=data.email, hashed_password=hashed_pw)
+def create_user(db: Session, data: UserCreate, hashed_pw: str) -> User:
+    obj = User(username=data.username, email=data.email, hashed_password=hashed_pw)
     db.add(obj)
     db.commit()
     db.refresh(obj)
