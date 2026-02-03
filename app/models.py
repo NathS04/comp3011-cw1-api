@@ -51,6 +51,9 @@ class RSVP(Base):
     event: Mapped["Event"] = relationship("Event", back_populates="rsvps")
     attendee: Mapped["Attendee"] = relationship("Attendee", back_populates="rsvps")
 
+    def __repr__(self):
+        return f"<RSVP(event_id={self.event_id}, attendee_id={self.attendee_id}, status={self.status})>"
+
 class User(Base):
     __tablename__ = "users"
 
