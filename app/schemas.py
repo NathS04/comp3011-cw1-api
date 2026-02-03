@@ -37,6 +37,7 @@ class EventCreate(BaseModel):
 
     @model_validator(mode="after")
     def _time_order(self):
+        # Ensure event ends after it starts
         if self.end_time <= self.start_time:
             raise ValueError("end_time must be after start_time")
         return self
