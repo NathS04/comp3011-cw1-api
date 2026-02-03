@@ -21,7 +21,14 @@ class EventCreate(BaseModel):
     location: str = Field(min_length=1, max_length=200)
     start_time: datetime
     end_time: datetime
-    capacity: int = Field(ge=0)
+    capacity: int = Field(ge=1)
+
+    @field_validator("capacity")
+    @classmethod
+    def validate_capacity(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("Capacity must be at least 1")
+        return v
 
     @field_validator("title", "location")
     @classmethod
