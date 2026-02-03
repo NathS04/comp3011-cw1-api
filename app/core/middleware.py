@@ -25,7 +25,9 @@ async def global_exception_handler(request: Request, exc: Exception):
     if isinstance(exc, AuthException):
          return JSONResponse(status_code=401, content={"detail": exc.detail}, headers={"WWW-Authenticate": "Bearer"})
 
-    logger.error(f"Global exception: {str(exc)}", exc_info=True)
+    # Log the full stack trace for debugging
+    # In production, we might want to send this to Sentry or similar
+    print(f"Global exception: {exc}")
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error"},
