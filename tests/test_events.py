@@ -12,23 +12,17 @@ def create_user_and_get_token(client: TestClient, username="eventuser"):
     )
     return response.json()["access_token"]
 
-def test_create_event(client: TestClient):
-    token = create_user_and_get_token(client)
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    start = datetime.utcnow() + timedelta(days=1)
-    end = start + timedelta(hours=2)
-    
+def test_create_event_success(client, auth_headers):
     payload = {
-        "title": "Test Event",
-        "description": "A test event",
-        "location": "Leeds",
-        "start_time": start.isoformat(),
-        "end_time": end.isoformat(),
+        "title": "Hackathon 2026",
+        "description": "Coding all night",
+        "location": "Leeds University",
+        "start_time": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat(),
+        "end_time": (datetime.now(timezone.utc) + timedelta(days=1, hours=5)).isoformat(),
         "capacity": 50
     }
     
-    response = client.post("/events", json=payload, headers=headers)
+    response = client.post("/events", json=payload, headers=auth_headers)
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == "Test Event"
