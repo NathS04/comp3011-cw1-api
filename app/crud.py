@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from .models import Event, Attendee, RSVP, User
 from .schemas import EventCreate, EventUpdate, AttendeeCreate, RSVPCreate, UserCreate
@@ -58,8 +58,8 @@ def list_events(
     
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
-def get_event(db: Session, event_id: int) -> Optional[Event]:
-    return db.get(Event, event_id)
+def get_event(db: Session, event_id: int):
+    return db.query(Event).options(joinedload(Event.rsvps)).filter(Event.id == event_id).first()
 
 def update_event(db: Session, event: Event, data: EventUpdate) -> Event:
     patch = data.model_dump(exclude_unset=True)
