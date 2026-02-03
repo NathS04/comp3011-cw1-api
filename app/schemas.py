@@ -42,6 +42,13 @@ class EventUpdate(BaseModel):
     end_time: Optional[datetime] = None
     capacity: Optional[int] = Field(default=None, ge=0)
 
+    @field_validator("title", "location")
+    @classmethod
+    def strip_whitespace(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return v.strip()
+        return v
+
     @model_validator(mode="after")
     def _time_order(self):
         if self.start_time is not None and self.end_time is not None:
