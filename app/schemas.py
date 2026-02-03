@@ -23,6 +23,11 @@ class EventCreate(BaseModel):
     end_time: datetime
     capacity: int = Field(ge=0)
 
+    @field_validator("title", "location")
+    @classmethod
+    def strip_whitespace(cls, v: str) -> str:
+        return v.strip()
+
     @model_validator(mode="after")
     def _time_order(self):
         if self.end_time <= self.start_time:
