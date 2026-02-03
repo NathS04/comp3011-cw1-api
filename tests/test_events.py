@@ -33,7 +33,7 @@ def test_list_events_pagination(client: TestClient):
     token = create_user_and_get_token(client)
     headers = {"Authorization": f"Bearer {token}"}
     start = datetime.utcnow() + timedelta(days=1)
-    end = start + timedelta(hours=1)
+    end = start + timedelta(hours=3)
     
     for i in range(15):
         client.post("/events", json={
