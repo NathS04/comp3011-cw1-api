@@ -23,6 +23,9 @@ class Event(Base):
 
     rsvps: Mapped[List["RSVP"]] = relationship("RSVP", back_populates="event", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"<Event(title={self.title}, location={self.location})>"
+
 class Attendee(Base):
     __tablename__ = "attendees"
 
@@ -31,6 +34,9 @@ class Attendee(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
 
     rsvps: Mapped[List["RSVP"]] = relationship("RSVP", back_populates="attendee", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Attendee(name={self.name}, email={self.email})>"
 
 class RSVP(Base):
     __tablename__ = "rsvps"
