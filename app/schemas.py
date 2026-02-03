@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Literal, Generic, TypeVar, List
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator, SecretStr
 
 T = TypeVar("T")
 
@@ -106,7 +106,7 @@ class EventStatsOut(BaseModel):
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: str
-    password: str = Field(min_length=6)
+    password: SecretStr = Field(min_length=6)
 
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)

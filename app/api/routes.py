@@ -33,7 +33,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     if crud.get_user_by_email(db, payload.email):
         raise HTTPException(status_code=400, detail="Email already registered")
-    hashed_pw = auth.get_password_hash(payload.password)
+    hashed_pw = auth.get_password_hash(payload.password.get_secret_value())
     return crud.create_user(db, payload, hashed_pw)
 
 @router.post("/auth/login", response_model=Token)
