@@ -107,12 +107,20 @@ def delete_rsvp(db: Session, rsvp: RSVP) -> None:
     db.commit()
 
 def get_event_stats(db: Session, event: Event):
-    stmt = select(RSVP.status, func.count(RSVP.id)).where(RSVP.event_id == event.id).group_by(RSVP.status)
-    rows = db.execute(stmt).all()
-    counts = {status: count for status, count in rows}
-    going = int(counts.get("going", 0))
-    maybe = int(counts.get("maybe", 0))
-    not_going = int(counts.get("not_going", 0))
+    # Ensure relationships are loaded if not present
+    if 'rsvps' not in event.__dict__:
+        db.refresh(event, ['rsvps'])
+    
+    total_rsvps = len(event.rsvps)
+    
+    counts = {"going": 0, "maybe": 0, "not_going": 0}
+    for rsvp in event.rsvps:
+        if rsvp.status in counts:
+            counts[rsvp.status] += 1
+
+    going = counts.get("going", 0)
+    maybe = counts.get("maybe", 0)
+    not_going = counts.get("not_going", 0)
     remaining = max(int(event.capacity) - going, 0)
     return {"event_id": event.id, "going": going, "maybe": maybe, "not_going": not_going, "remaining_capacity": remaining}
 
