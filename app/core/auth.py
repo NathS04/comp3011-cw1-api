@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from ..core.db import get_db
-from .. import crud, models, schemas
+from app.schemas import Token, TokenData # Modified import for schemas
 
 # Secret key for signing JWTs (in a real app, this should be in .env)
 # Using a hardcoded key for coursework purposes as per brief "student project" style
