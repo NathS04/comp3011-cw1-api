@@ -1,8 +1,22 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+import os
+from dotenv import load_dotenv
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-    database_url: str = Field(default="sqlite:///./app.db", validation_alias="DATABASE_URL")
+# Load environment variables from .env file
+load_dotenv()
+
+class Settings:
+    PROJECT_NAME = "COMP3011 CW1 API"
+    VERSION = "1.0.0"
+    
+    # Environment (dev/prod)
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
+    
+    # Database
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
+    
+    # Security
+    SECRET_KEY = os.getenv("SECRET_KEY", "comp3011-coursework-secret-key-change-me-in-prod")
+    ALGORITHM = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 settings = Settings()
