@@ -53,6 +53,9 @@ This project follows a layered architecture:
 - `app/schemas`: Data validation (DTOs)
 - `app/core`: Configuration and Auth
 
-## Deployment
+Designed for easy deployment on **PythonAnywhere** or **Render**. See `wsgi.py` for entry point.
 
-Designed for easy deployment on **PythonAnywhere**. See `wsgi.py` for entry point.
+## Known Limitations
+
+- SQLite database is used for development; ideally, PostgreSQL should be used for production.
+- Token expiration is set to default; purely illustrative for coursework.
