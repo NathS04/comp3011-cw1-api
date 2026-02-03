@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional, Literal, Generic, TypeVar, List
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+T = TypeVar("T")
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
+    total: int
+    limit: int
+    offset: int
 
 RSVPStatus = Literal["going", "maybe", "not_going"]
 

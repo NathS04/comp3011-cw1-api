@@ -13,7 +13,7 @@ from ..models import RSVP
 from ..schemas import (
     EventCreate, EventUpdate, EventOut, EventStatsOut,
     AttendeeCreate, AttendeeOut,
-    EventCreate, EventUpdate, EventOut, EventStatsOut,
+    EventCreate, EventUpdate, EventOut, EventStatsOut, PaginatedResponse,
     AttendeeCreate, AttendeeOut,
     RSVPCreate, RSVPOut,
     UserCreate, UserOut, Token,
@@ -53,9 +53,18 @@ def health():
 def create_event(payload: EventCreate, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     return crud.create_event(db, payload)
 
-@router.get("/events", response_model=List[EventOut])
-def list_events(q: Optional[str] = None, location: Optional[str] = None, start_after: Optional[datetime] = None, start_before: Optional[datetime] = None, db: Session = Depends(get_db)):
-    return crud.list_events(db, q=q, location=location, start_after=start_after, start_before=start_before)
+@router.get("/events", response_model=PaginatedResponse[EventOut])
+def list_events(
+    q: Optional[str] = None, 
+    location: Optional[str] = None, 
+    start_after: Optional[datetime] = None, 
+    start_before: Optional[datetime] = None, 
+    limit: int = 10,
+    offset: int = 0,
+    sort: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    return crud.list_events(db, q=q, location=location, start_after=start_after, start_before=start_before, limit=limit, offset=offset, sort=sort)
 
 @router.get("/events/{event_id}", response_model=EventOut)
 def get_event(event_id: int, db: Session = Depends(get_db)):

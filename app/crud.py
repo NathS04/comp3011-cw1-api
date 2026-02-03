@@ -17,7 +17,16 @@ def create_event(db: Session, data: EventCreate) -> Event:
     db.refresh(obj)
     return obj
 
-def list_events(db: Session, q: Optional[str] = None, location: Optional[str] = None, start_after: Optional[datetime] = None, start_before: Optional[datetime] = None) -> List[Event]:
+def list_events(
+    db: Session, 
+    q: Optional[str] = None, 
+    location: Optional[str] = None, 
+    start_after: Optional[datetime] = None, 
+    start_before: Optional[datetime] = None,
+    limit: int = 10,
+    offset: int = 0,
+    sort: Optional[str] = None
+) -> dict:
     stmt = select(Event)
     if q:
         stmt = stmt.where(Event.title.ilike(f"%{q}%"))
@@ -27,8 +36,27 @@ def list_events(db: Session, q: Optional[str] = None, location: Optional[str] = 
         stmt = stmt.where(Event.start_time >= start_after)
     if start_before:
         stmt = stmt.where(Event.start_time <= start_before)
-    stmt = stmt.order_by(Event.start_time.asc())
-    return list(db.execute(stmt).scalars().all())
+    
+    # Sorting
+    if sort:
+        desc = sort.startswith("-")
+        field_name = sort[1:] if desc else sort
+        # Allow sorting only by safe fields
+        if field_name in ["start_time", "end_time", "created_at", "title", "capacity"]:
+            field = getattr(Event, field_name)
+            stmt = stmt.order_by(field.desc() if desc else field.asc())
+    else:
+        stmt = stmt.order_by(Event.start_time.asc())
+        
+    # Total count (efficient count)
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    total = db.scalar(count_stmt) or 0
+
+    # Pagination
+    stmt = stmt.limit(limit).offset(offset)
+    items = list(db.execute(stmt).scalars().all())
+    
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 def get_event(db: Session, event_id: int) -> Optional[Event]:
     return db.get(Event, event_id)
