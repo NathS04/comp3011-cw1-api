@@ -1,72 +1,105 @@
-# COMP3011 Coursework 1 - Final Walkthrough
+# COMP3011 Coursework 1 - Project Walkthrough
 
-**Project Status:** 100% Complete 🚀  
-**Test Coverage:** 100% (19/19 tests passed)  
-**Deployment Ready:** Yes (PythonAnywhere)
+**Project:** EventHub - Event & RSVP Management API  
+**Status:** 100% Complete ✅  
+**Tests:** 25/25 Passing  
+**Deployment:** Live on Render.com  
 
 ---
 
-## 1. What We Accomplished
+## 1. What Was Built
 
-We have successfully built a "Distinction-level" (80-100%) API with the following features:
+A production-ready RESTful API for event management with the following features:
 
-### ✅ Authentication System
-- Secure **JWT Authentication** implemented.
-- Users can register (`POST /auth/register`) and login (`POST /auth/login`).
-- Write operations (Create/Update/Delete) are strictly protected.
+### Core CRUD Operations
+- **Events**: Create, read, update, delete with filtering, pagination, and sorting
+- **Attendees**: Registration with unique email constraint
+- **RSVPs**: Link attendees to events with status tracking (going/maybe/not_going)
+- **Statistics**: Real-time capacity and RSVP breakdown per event
 
-### ✅ Advanced API Features
-- **Pagination**: List endpoints support `?limit=10&offset=0`.
-- **Sorting**: Events can be sorted by time, e.g., `?sort=-start_time`.
-- **Statistics**: Endpoint to calculate RSVSs (`/events/{id}/stats`).
-- **Middleware**: Custom request logging and global exception handling.
+### Authentication
+- JWT-based authentication using python-jose
+- Secure password hashing with pbkdf2_sha256
+- Protected routes for all write operations
 
-### ✅ Comprehensive Testing
-- **19 Automated Tests** covering all CRUD operations, auth flows, and edge cases.
-- In-memory database used for fast, isolated testing.
-
-### ✅ Documentation
-- **API Documentation**: Detailed [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) ready for PDF export.
-- **README.md**: Professional landing page with architecture diagram and setup guide.
+### Novel Features (Beyond CRUD)
+- **Data Provenance**: `data_sources` and `import_runs` tables track external data imports
+- **Analytics Endpoints**:
+  - `/analytics/events/seasonality` - Monthly event aggregation
+  - `/analytics/events/trending` - RSVP-based trending score
+  - `/events/recommendations` - Personalised suggestions based on history
 
 ---
 
 ## 2. Verification
 
-### Test Suite Results
-All tests passed successfully:
-
+### Test Results
 ```bash
-$ pytest -v
-================== 19 passed in 0.60s ==================
+$ pytest -q
+.........................                              [100%]
+25 passed, 2 warnings in 0.72s
 ```
 
-### Manual Verification
+### Manual Verification Steps
 1. Start server: `uvicorn app.main:app --reload`
-2. Visit: `http://127.0.0.1:8000/docs`
-3. Try **POST /auth/register** to create a user.
-4. Try **POST /auth/login** to get a token.
-5. Click **Authorize** button in Swagger UI and paste the token.
-6. Now you can creating Events!
+2. Visit: `http://127.0.0.1:8000/docs` (Swagger UI)
+3. **POST** `/auth/register` - Create a user
+4. **POST** `/auth/login` - Get JWT token
+5. Click **Authorize** button and paste token
+6. **POST** `/events` - Create an event
+7. **POST** `/attendees` - Register an attendee
+8. **POST** `/events/{id}/rsvps` - Create RSVP
+9. **GET** `/events/{id}/stats` - View statistics
+10. **GET** `/analytics/events/trending` - View analytics
 
 ---
 
-## 3. Next Steps for You
+## 3. Deployment
 
-### Deployment Update (Render)
-- **Status**: Live on Render
-- **Fixes**: Corrected `AttributeError` in `alembic/env.py` caused by case mismatch (`settings.database_url` -> `settings.DATABASE_URL`).
-- **Trigger**: Automatic deployment via Git Push.
+### Platform: Render.com
+- **URL**: [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com)
+- **Auto-deploy**: Push to `main` branch triggers automatic build
+- **Config**: `render.yaml` specifies build and start commands
 
-1. **Render Deployment**:
-   - Deployment is automated via `render.yaml`.
-   - Pushing to `main` triggers a new build.
-   - Check the [Render Dashboard](https://dashboard.render.com).
+### Environment Variables
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `SECRET_KEY` | JWT signing key |
+| `ENVIRONMENT` | Set to `production` |
 
-2. **Generate GenAI Appendix**:
-   - Export your chat logs with Claude/Gemini.
-   - Append them to your Technical Report PDF.
+---
 
-3. **Record Presentation**:
-   - Use the slides we outlined in the plan.
-   - Demo the working API on PythonAnywhere.
+## 4. Repository Structure
+
+```
+comp3011-cw1-api/
+├── app/
+│   ├── api/          # Route handlers
+│   ├── core/         # Auth, config, middleware
+│   ├── models.py     # SQLAlchemy ORM models
+│   ├── schemas.py    # Pydantic validation schemas
+│   ├── crud.py       # Database operations
+│   └── main.py       # FastAPI application
+├── tests/            # 25 automated tests
+├── alembic/          # Database migrations
+├── scripts/          # Import utilities
+├── docs/             # Documentation
+└── requirements.txt
+```
+
+---
+
+## 5. Key Files for Markers
+
+| Deliverable | Location |
+|-------------|----------|
+| **API Documentation** | `docs/API_DOCUMENTATION.pdf` |
+| **Technical Report** | `TECHNICAL_REPORT.pdf` |
+| **Presentation Slides** | `docs/PRESENTATION_SLIDES.pptx` |
+| **GenAI Logs** | `docs/appendix_genai_logs.md` |
+| **README** | `README.md` |
+
+---
+
+*Generated for COMP3011 CW1 submission, University of Leeds*

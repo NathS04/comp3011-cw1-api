@@ -18,9 +18,10 @@ A REST API for managing events, attendees, and RSVPs with **novel data integrati
 | **📖 Swagger UI** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) |
 | **📄 API Documentation** | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
 | **📝 Technical Report** | [TECHNICAL_REPORT.pdf](TECHNICAL_REPORT.pdf) |
-| **🎤 Presentation Slides** | [docs/PRESENTATION_OUTLINE.md](docs/PRESENTATION_OUTLINE.md) |
+| **🎤 Presentation Slides** | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
+| **🤖 GenAI Logs** | [docs/GENAI_EXPORT_LOGS.md](docs/GENAI_EXPORT_LOGS.md) |
 
-> **PDF files are included in this repository.** Markdown source files are also provided.
+> **All deliverables are included in this repository.** PDF and PPTX files are ready for submission.
 
 ---
 

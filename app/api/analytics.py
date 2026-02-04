@@ -17,24 +17,28 @@ def get_event_seasonality(db: Session = Depends(get_db)):
     """
     Get event aggregation by month to identify seasonal trends.
     """
-    # SQLite doesn't have easy date truncation functions like Postgres, so we fetch and process in python
-    # For a real "Outstanding" implementation, we'd use dialect-specific SQL, but this logic is robust.
-    
     events = db.scalars(select(Event)).all()
     
-    # Aggregation
-    month_counts = {}
+    # Aggregation by month with location tracking
+    month_data = {}
     for event in events:
         month_key = event.start_time.strftime("%Y-%m")
-        month_counts[month_key] = month_counts.get(month_key, 0) + 1
+        if month_key not in month_data:
+            month_data[month_key] = {"count": 0, "locations": {}}
+        month_data[month_key]["count"] += 1
+        loc = event.location or "Unknown"
+        month_data[month_key]["locations"][loc] = month_data[month_key]["locations"].get(loc, 0) + 1
         
-    # Format response
+    # Format response with top locations derived from data
     items = []
-    for month, count in sorted(month_counts.items()):
+    for month, data in sorted(month_data.items()):
+        # Get top 3 locations for this month
+        sorted_locs = sorted(data["locations"].items(), key=lambda x: x[1], reverse=True)
+        top_locs = [loc for loc, count in sorted_locs[:3]]
         items.append(SeasonalityItem(
             month=month,
-            count=count,
-            top_categories=["General"] # Placeholder as we don't have categories table yet
+            count=data["count"],
+            top_categories=top_locs if top_locs else ["N/A"]
         ))
         
     return SeasonalityResponse(items=items)
