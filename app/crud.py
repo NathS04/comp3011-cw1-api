@@ -90,6 +90,9 @@ def delete_event(db: Session, event: Event) -> None:
     db.commit()
 
 def create_attendee(db: Session, data: AttendeeCreate) -> Attendee:
+    """
+    Register a new attendee.
+    """
     obj = Attendee(**data.model_dump())
     db.add(obj)
     try:
@@ -151,6 +154,9 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.execute(select(User).where(User.email == email)).scalars().first()
 
 def create_user(db: Session, data: UserCreate, hashed_pw: str) -> User:
+    """
+    Create a new system user with a hashed password.
+    """
     obj = User(username=data.username, email=data.email, hashed_password=hashed_pw)
     db.add(obj)
     db.commit()
