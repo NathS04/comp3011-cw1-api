@@ -11,6 +11,9 @@ from .models import Event, Attendee, RSVP, User
 from .schemas import EventCreate, EventUpdate, AttendeeCreate, RSVPCreate, UserCreate
 
 def create_event(db: Session, data: EventCreate) -> Event:
+    """
+    Create a new event in the database.
+    """
     obj = Event(**data.model_dump())
     db.add(obj)
     db.commit()
@@ -27,9 +30,11 @@ def list_events(
     offset: int = 0,
     offset: int = 0,
     sort: Optional[str] = None,
-    min_capacity: Optional[int] = None,
     status: Optional[str] = None
 ) -> dict:
+    """
+    List events with optional filters (text, location, date, capacity, status) and sorting files.
+    """
     stmt = select(Event)
     if q:
         stmt = stmt.where(Event.title.ilike(f"%{q}%"))
