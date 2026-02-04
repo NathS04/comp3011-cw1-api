@@ -13,6 +13,7 @@ A REST API for managing events, attendees, and RSVPs with **novel data integrati
 
 | Resource | Link |
 |----------|------|
+| **📂 GitHub Repo** | [github.com/NathS04/comp3011-cw1-api](https://github.com/NathS04/comp3011-cw1-api) |
 | **🔗 Live API** | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
 | **📖 Swagger UI** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) |
 | **📄 API Documentation (PDF)** | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
