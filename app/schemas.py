@@ -149,6 +149,16 @@ class UserCreate(BaseModel):
     email: str
     password: SecretStr = Field(min_length=6)
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "username": "janedoe",
+                "email": "jane@example.com",
+                "password": "strongpassword123"
+            }
+        }
+    }
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
