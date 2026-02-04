@@ -10,6 +10,9 @@ class Base(DeclarativeBase):
     pass
 
 class Event(Base):
+    """
+    SQLAlchemy model representing an event.
+    """
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -27,6 +30,9 @@ class Event(Base):
         return f"<Event(title={self.title}, location={self.location})>"
 
 class Attendee(Base):
+    """
+    SQLAlchemy model representing an event attendee.
+    """
     __tablename__ = "attendees"
 
     id: Mapped[int] = mapped_column(primary_key=True)
