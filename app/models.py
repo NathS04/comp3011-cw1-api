@@ -45,6 +45,9 @@ class Attendee(Base):
         return f"<Attendee(name={self.name}, email={self.email})>"
 
 class RSVP(Base):
+    """
+    SQLAlchemy model representing an RSVP (link between Event and Attendee).
+    """
     __tablename__ = "rsvps"
     __table_args__ = (UniqueConstraint("event_id", "attendee_id", name="uq_rsvp_event_attendee"),)
 
@@ -61,6 +64,9 @@ class RSVP(Base):
         return f"<RSVP(event_id={self.event_id}, attendee_id={self.attendee_id}, status={self.status})>"
 
 class User(Base):
+    """
+    SQLAlchemy model representing a registered system user.
+    """
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
