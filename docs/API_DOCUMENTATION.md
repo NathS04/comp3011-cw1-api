@@ -7,7 +7,7 @@
 
 This API allows users to create and manage events, attendees, and RSVPs. It features JWT-based authentication, role-based access control (implied via token), and comprehensive data validation.
 
-**Base URL:** `https://<your-app>.pythonanywhere.com` (Production)  
+**Base URL:** `https://comp3011-cw1-api.onrender.com` (Production)  
 **Local URL:** `http://127.0.0.1:8000`
 
 ---
