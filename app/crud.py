@@ -25,7 +25,10 @@ def list_events(
     start_before: Optional[datetime] = None,
     limit: int = 10,
     offset: int = 0,
-    sort: Optional[str] = None
+    offset: int = 0,
+    sort: Optional[str] = None,
+    min_capacity: Optional[int] = None,
+    status: Optional[str] = None
 ) -> dict:
     stmt = select(Event)
     if q:
@@ -36,6 +39,14 @@ def list_events(
         stmt = stmt.where(Event.start_time >= start_after)
     if start_before:
         stmt = stmt.where(Event.start_time <= start_before)
+    if min_capacity:
+        stmt = stmt.where(Event.capacity >= min_capacity)
+    if status:
+        now = datetime.utcnow()
+        if status == "upcoming":
+            stmt = stmt.where(Event.start_time > now)
+        elif status == "past":
+            stmt = stmt.where(Event.start_time < now)
     
     # Sorting
     if sort:

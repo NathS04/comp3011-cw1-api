@@ -74,12 +74,14 @@ def list_events(
     limit: int = 10,
     offset: int = 0,
     sort: Optional[str] = None,
+    min_capacity: Optional[int] = None,
+    status: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """
     List events with pagination, filtering, and sorting.
     """
-    return crud.list_events(db, q=q, location=location, start_after=start_after, start_before=start_before, limit=limit, offset=offset, sort=sort)
+    return crud.list_events(db, q=q, location=location, start_after=start_after, start_before=start_before, limit=limit, offset=offset, sort=sort, min_capacity=min_capacity, status=status)
 
 @router.get("/events/{event_id}", response_model=EventOut)
 def get_event(event_id: int, db: Session = Depends(get_db)):
