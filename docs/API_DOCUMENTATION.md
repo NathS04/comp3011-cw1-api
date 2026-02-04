@@ -1,8 +1,40 @@
 # EventHub API Documentation
 
-**Version:** 1.0.0  
-**Author:** Nathaniel Sebastian  
+**Version:** 1.1.0  
+**Author:** Nathaniel Sebastian (sc232ns@leeds.ac.uk)  
 **Last Updated:** 4th February 2026  
+
+---
+
+## How to Generate PDF
+
+To export this documentation as a PDF (required for submission):
+
+**Option 1: Using Pandoc (Recommended)**
+```bash
+pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf --pdf-engine=xelatex
+```
+
+**Option 2: VS Code**
+1. Install "Markdown PDF" extension
+2. Open this file → Ctrl+Shift+P → "Markdown PDF: Export (pdf)"
+
+**Option 3: Browser**
+1. Open in any Markdown viewer
+2. Print to PDF (Ctrl+P → Save as PDF)
+
+---
+
+## Table of Contents
+
+1. [Base URLs](#base-urls)
+2. [Authentication](#authentication)
+3. [Events](#events)
+4. [Attendees](#attendees)
+5. [RSVPs](#rsvps)
+6. [Analytics & Recommendations](#analytics--recommendations)
+7. [Error Handling](#error-response-format)
+8. [Running Locally](#running-locally)
 
 ---
 
@@ -22,6 +54,14 @@
 ## Authentication
 
 Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token. Read operations (GET) are generally public.
+
+### Auth Flow Summary
+
+```
+1. POST /auth/register  →  Create account
+2. POST /auth/login     →  Receive JWT token
+3. Include token in requests: Authorization: Bearer <token>
+```
 
 ### Register a New User
 
@@ -48,8 +88,10 @@ Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token.
 ```
 
 **Error Responses:**
-- `400 Bad Request` – Username or email already registered
-- `422 Unprocessable Entity` – Validation failed (e.g., password too short)
+| Status | Meaning |
+|--------|---------|
+| `400 Bad Request` | Username or email already registered |
+| `422 Unprocessable Entity` | Validation failed (e.g., password too short) |
 
 ---
 
@@ -90,6 +132,8 @@ Include the token in the `Authorization` header for all protected requests:
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
+**Token Expiry:** 30 minutes
+
 ---
 
 ## Events
@@ -101,17 +145,17 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | integer | Max results to return (default: 10) |
-| `offset` | integer | Number of results to skip (default: 0) |
-| `sort` | string | Field to sort by (prefix with `-` for descending, e.g., `-start_time`) |
-| `q` | string | Search by title (partial match) |
-| `location` | string | Filter by location (partial match) |
-| `start_after` | datetime | Filter events starting after this time |
-| `start_before` | datetime | Filter events starting before this time |
-| `min_capacity` | integer | Filter events with at least this capacity |
-| `status` | string | `upcoming` (future events) or `past` (past events) |
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `limit` | integer | Max results (default: 10, max: 100) | `?limit=20` |
+| `offset` | integer | Skip N results (default: 0) | `?offset=10` |
+| `sort` | string | Sort field, prefix `-` for desc | `?sort=-start_time` |
+| `q` | string | Search title (partial match) | `?q=tech` |
+| `location` | string | Filter by location | `?location=Leeds` |
+| `start_after` | datetime | Events starting after | `?start_after=2026-03-01T00:00:00` |
+| `start_before` | datetime | Events starting before | `?start_before=2026-04-01T00:00:00` |
+| `min_capacity` | integer | Minimum capacity | `?min_capacity=50` |
+| `status` | string | `upcoming` or `past` | `?status=upcoming` |
 
 **Example Request:**
 ```
@@ -133,7 +177,7 @@ GET /events?limit=5&sort=-start_time&status=upcoming
       "created_at": "2026-02-01T10:00:00Z"
     }
   ],
-  "total": 1,
+  "total": 42,
   "limit": 5,
   "offset": 0
 }
@@ -159,12 +203,14 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 ```
 
 **Validation Rules:**
-- `title`: 1–200 characters, required
-- `description`: 0–1000 characters, optional
-- `location`: 1–200 characters, required
-- `start_time`: ISO 8601 datetime, required
-- `end_time`: Must be after `start_time`, required
-- `capacity`: Positive integer (≥ 1), required
+| Field | Rules |
+|-------|-------|
+| `title` | Required, 1–200 characters |
+| `description` | Optional, max 1000 characters |
+| `location` | Required, 1–200 characters |
+| `start_time` | Required, ISO 8601 datetime |
+| `end_time` | Required, must be after `start_time` |
+| `capacity` | Required, integer ≥ 1 |
 
 **Success Response (201 Created):**
 ```json
@@ -180,10 +226,6 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 }
 ```
 
-**Error Responses:**
-- `401 Unauthorized` – Missing or invalid token
-- `422 Unprocessable Entity` – Validation failed (e.g., `end_time` before `start_time`)
-
 ---
 
 ### Get Event by ID
@@ -191,26 +233,9 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 **Endpoint:** `GET /events/{id}`  
 **Auth Required:** No
 
-**Success Response (200 OK):**
-```json
-{
-  "id": 1,
-  "title": "Tech Meetup Leeds",
-  "description": "Monthly gathering for tech enthusiasts",
-  "location": "Leeds Digital Hub",
-  "start_time": "2026-03-15T18:00:00Z",
-  "end_time": "2026-03-15T21:00:00Z",
-  "capacity": 50,
-  "created_at": "2026-02-01T10:00:00Z"
-}
-```
+**Success Response (200 OK):** Returns single event object.
 
-**Error Response (404 Not Found):**
-```json
-{
-  "detail": "Event not found"
-}
-```
+**Error Response (404):** `{"detail": "Event not found"}`
 
 ---
 
@@ -227,13 +252,7 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 }
 ```
 
-**Success Response (200 OK):**
-Returns the updated event object.
-
-**Error Responses:**
-- `401 Unauthorized` – Missing or invalid token
-- `404 Not Found` – Event does not exist
-- `422 Unprocessable Entity` – Validation failed
+Only include fields you want to update.
 
 ---
 
@@ -242,12 +261,7 @@ Returns the updated event object.
 **Endpoint:** `DELETE /events/{id}`  
 **Auth Required:** Yes
 
-**Success Response (204 No Content):**
-No body returned.
-
-**Error Responses:**
-- `401 Unauthorized` – Missing or invalid token
-- `404 Not Found` – Event does not exist
+**Success Response:** `204 No Content`
 
 ---
 
@@ -267,15 +281,7 @@ No body returned.
 }
 ```
 
-**Calculation:**
-- `remaining_capacity = capacity - going`
-
-**Error Response (404 Not Found):**
-```json
-{
-  "detail": "Event not found"
-}
-```
+**Formula:** `remaining_capacity = capacity - going`
 
 ---
 
@@ -303,9 +309,7 @@ No body returned.
 }
 ```
 
-**Error Responses:**
-- `401 Unauthorized` – Missing or invalid token
-- `409 Conflict` – Email already registered
+**Error:** `409 Conflict` if email already registered.
 
 ---
 
@@ -314,40 +318,12 @@ No body returned.
 **Endpoint:** `GET /attendees/{id}`  
 **Auth Required:** No
 
-**Success Response (200 OK):**
-```json
-{
-  "id": 1,
-  "name": "Alice Smith",
-  "email": "alice.smith@leeds.ac.uk"
-}
-```
-
-**Error Response (404 Not Found):**
-```json
-{
-  "detail": "Attendee not found"
-}
-```
-
 ---
 
 ### Get Events for Attendee
 
 **Endpoint:** `GET /attendees/{id}/events`  
 **Auth Required:** No
-
-**Success Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "title": "Tech Meetup Leeds",
-    "start_time": "2026-03-15T18:00:00Z",
-    ...
-  }
-]
-```
 
 Returns all events the attendee has RSVP'd to.
 
@@ -370,21 +346,9 @@ Returns all events the attendee has RSVP'd to.
 
 **Valid status values:** `going`, `maybe`, `not_going`
 
-**Success Response (201 Created):**
-```json
-{
-  "id": 1,
-  "event_id": 1,
-  "attendee_id": 1,
-  "status": "going",
-  "created_at": "2026-02-04T15:00:00Z"
-}
-```
-
 **Error Responses:**
-- `401 Unauthorized` – Missing or invalid token
-- `404 Not Found` – Event or attendee does not exist
-- `409 Conflict` – Attendee has already RSVP'd to this event
+- `404` – Event or attendee not found
+- `409` – Duplicate RSVP (attendee already RSVP'd to this event)
 
 ---
 
@@ -393,26 +357,6 @@ Returns all events the attendee has RSVP'd to.
 **Endpoint:** `GET /events/{event_id}/rsvps`  
 **Auth Required:** No
 
-**Success Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "event_id": 1,
-    "attendee_id": 1,
-    "status": "going",
-    "created_at": "2026-02-04T15:00:00Z"
-  },
-  {
-    "id": 2,
-    "event_id": 1,
-    "attendee_id": 2,
-    "status": "maybe",
-    "created_at": "2026-02-04T15:30:00Z"
-  }
-]
-```
-
 ---
 
 ### Delete RSVP
@@ -420,12 +364,95 @@ Returns all events the attendee has RSVP'd to.
 **Endpoint:** `DELETE /events/{event_id}/rsvps/{rsvp_id}`  
 **Auth Required:** Yes
 
-**Success Response (204 No Content):**
-No body returned.
+---
 
-**Error Responses:**
-- `401 Unauthorized` – Missing or invalid token
-- `404 Not Found` – Event or RSVP does not exist
+## Analytics & Recommendations
+
+These endpoints provide derived insights beyond basic CRUD operations.
+
+### Event Seasonality
+
+**Endpoint:** `GET /analytics/events/seasonality`  
+**Auth Required:** No  
+**Purpose:** Aggregate events by month to identify seasonal patterns.
+
+**Success Response (200 OK):**
+```json
+{
+  "items": [
+    {"month": "2026-01", "count": 5, "top_categories": ["General"]},
+    {"month": "2026-02", "count": 12, "top_categories": ["General"]},
+    {"month": "2026-03", "count": 8, "top_categories": ["General"]}
+  ]
+}
+```
+
+---
+
+### Trending Events
+
+**Endpoint:** `GET /analytics/events/trending`  
+**Auth Required:** No
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `window_days` | integer | 30 | Days to consider for "recent" RSVPs |
+| `limit` | integer | 5 | Max events to return |
+
+**Trending Score Formula:**
+```
+score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
+```
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "event_id": 3,
+    "title": "AI Workshop",
+    "trending_score": 15.5,
+    "recent_rsvps": 8
+  },
+  {
+    "event_id": 7,
+    "title": "Networking Night",
+    "trending_score": 12.0,
+    "recent_rsvps": 6
+  }
+]
+```
+
+---
+
+### Personalised Recommendations
+
+**Endpoint:** `GET /events/recommendations`  
+**Auth Required:** Yes  
+**Purpose:** Suggest upcoming events based on user's RSVP history.
+
+**Algorithm:**
+1. Find attendee record matching the authenticated user's email.
+2. Identify locations the user has previously attended.
+3. Recommend future events at those locations.
+4. Cold start: If no history, return top upcoming events.
+
+**Success Response (200 OK):**
+```json
+{
+  "recommendations": [
+    {
+      "event_id": 12,
+      "title": "Python Meetup",
+      "score": 0.9,
+      "reason": "Based on your interest in Leeds Digital Hub",
+      "location": "Leeds Digital Hub",
+      "start_time": "2026-03-20T18:00:00Z"
+    }
+  ],
+  "user_id": 5
+}
+```
 
 ---
 
@@ -439,7 +466,7 @@ All error responses follow a consistent format:
 }
 ```
 
-For validation errors (422), the response includes field-level details:
+For validation errors (422):
 
 ```json
 {
@@ -459,21 +486,82 @@ For validation errors (422), the response includes field-level details:
 
 | Code | Meaning | When Used |
 |------|---------|-----------|
-| `200` | OK | Successful GET, PATCH requests |
-| `201` | Created | Successful POST (resource created) |
+| `200` | OK | Successful GET, PATCH |
+| `201` | Created | Successful POST |
 | `204` | No Content | Successful DELETE |
-| `400` | Bad Request | Invalid request data (e.g., duplicate username) |
-| `401` | Unauthorized | Missing or invalid JWT token |
-| `404` | Not Found | Requested resource doesn't exist |
-| `409` | Conflict | Duplicate entry (e.g., RSVP already exists) |
-| `422` | Unprocessable Entity | Request body fails Pydantic validation |
-| `500` | Internal Server Error | Unexpected server-side error |
+| `400` | Bad Request | Invalid data (duplicate username) |
+| `401` | Unauthorized | Missing/invalid JWT |
+| `404` | Not Found | Resource doesn't exist |
+| `409` | Conflict | Duplicate entry |
+| `422` | Unprocessable Entity | Validation failed |
+| `500` | Internal Server Error | Unexpected error |
 
 ---
 
-## Rate Limiting
+## Running Locally
 
-Currently, no rate limiting is implemented. For production use, consider adding throttling to prevent abuse.
+### Prerequisites
+- Python 3.11+
+- pip
+
+### Setup
+```bash
+# Clone repository
+git clone https://github.com/NathS04/comp3011-cw1-api.git
+cd comp3011-cw1-api
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+export DATABASE_URL="sqlite:///./app.db"
+export SECRET_KEY="your-secret-key"
+
+# Run migrations
+alembic upgrade head
+
+# Start server
+uvicorn app.main:app --reload
+```
+
+### Running Tests
+```bash
+pytest -v
+```
+
+---
+
+## Demo Script (cURL)
+
+```bash
+# 1. Health check
+curl http://127.0.0.1:8000/health
+
+# 2. Register
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","email":"demo@test.com","password":"password123"}'
+
+# 3. Login
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
+  -d "username=demo&password=password123" | jq -r '.access_token')
+
+# 4. Create event
+curl -X POST http://127.0.0.1:8000/events \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Demo Event","location":"Leeds","start_time":"2026-03-01T10:00:00","end_time":"2026-03-01T12:00:00","capacity":50}'
+
+# 5. Get trending
+curl http://127.0.0.1:8000/analytics/events/trending
+
+# 6. Get recommendations
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/events/recommendations
+```
 
 ---
 
@@ -481,4 +569,9 @@ Currently, no rate limiting is implemented. For production use, consider adding 
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2026-02-04 | Initial release |
+| 1.1.0 | 2026-02-04 | Added analytics and recommendations endpoints |
+| 1.0.0 | 2026-02-01 | Initial release |
+
+---
+
+*Document generated for COMP3011 CW1 submission*

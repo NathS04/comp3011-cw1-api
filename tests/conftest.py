@@ -37,3 +37,14 @@ def client(db):
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+@pytest.fixture(scope="function")
+def auth_headers(client):
+    """
+    Registers a test user and returns the Authorization header.
+    """
+    user_data = {"username": "authtest", "email": "authtest@example.com", "password": "password123"}
+    client.post("/auth/register", json=user_data)
+    response = client.post("/auth/login", data={"username": user_data["username"], "password": user_data["password"]})
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}

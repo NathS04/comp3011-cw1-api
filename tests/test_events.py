@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 
 def create_user_and_get_token(client: TestClient, username="eventuser"):
@@ -25,7 +25,7 @@ def test_create_event_success(client, auth_headers):
     response = client.post("/events", json=payload, headers=auth_headers)
     assert response.status_code == 201
     data = response.json()
-    assert data["title"] == "Test Event"
+    assert data["title"] == "Hackathon 2026"
     assert data["id"] is not None
 
 def test_list_events_pagination(client: TestClient):

@@ -1,34 +1,35 @@
-# COMP3011 CW1 - Documentation Overhaul
+# COMP3011 CW1 - Upgrade to Outstanding (95%)
 
-## Phase 1: Technical Report (TECHNICAL_REPORT_DRAFT.md)
-- [/] 1.1 Add proper header block (Module, CW, Student ID, Links)
-- [ ] 1.2 Section 1: Introduction & Problem Statement
-- [ ] 1.3 Section 2: Technology Stack & Architecture (with diagram)
-- [ ] 1.4 Section 3: Data Model & API Design (with ER diagram)
-- [ ] 1.5 Section 4: Implementation Highlights & Challenges
-- [ ] 1.6 Section 5: Testing Strategy & Evidence
-- [ ] 1.7 Section 6: Limitations & Future Work
-- [ ] 1.8 Section 7: GenAI Declaration & Reflection
+## Phase 1: Novel Data Integration (Coding)
+- [ ] 1.1 Database Schema
+    - [ ] Add `DataSource` model (provenance tracking)
+    - [ ] Add `ImportRun` model (execution logs)
+    - [ ] Add `source_id`, `source_record_id`, `is_seeded` to `Event` model
+    - [ ] Generate Alembic migration
+- [ ] 1.2 Import Pipeline
+    - [ ] Create `scripts/import_dataset.py`
+    - [ ] Implement idempotency checks
+    - [ ] Implement error logging and summary stats
+    - [ ] Add sample CSV dataset (10-30 rows)
 
-## Phase 2: API Documentation (docs/API_DOCUMENTATION.md)
-- [ ] 2.1 Front matter (Title, Version, Base URLs)
-- [ ] 2.2 Auth section with full examples
-- [ ] 2.3 Events section with all endpoints + examples
-- [ ] 2.4 Attendees & RSVPs with examples
-- [ ] 2.5 Error handling summary table
+## Phase 2: Analytics & Recommendations (Coding)
+- [ ] 2.1 Analytics Endpoints
+    - [ ] `GET /analytics/events/seasonality` (SQL aggregation)
+    - [ ] `GET /analytics/events/trending` (Rolling window scoring)
+- [ ] 2.2 Recommendation Engine
+    - [ ] `GET /events/recommendations` (Deterministic scoring algorithm)
+- [ ] 2.3 Schemas
+    - [ ] Add Pydantic models for analytics responses
 
-## Phase 3: README.md
-- [ ] 3.1 Project overview
-- [ ] 3.2 Tech stack
-- [ ] 3.3 Local setup
-- [ ] 3.4 Running tests
-- [ ] 3.5 Environment variables
-- [ ] 3.6 Deployment section
-- [ ] 3.7 Links to all deliverables
+## Phase 3: Testing & Security (Coding)
+- [ ] 3.1 Tests
+    - [ ] Test import script (mocked)
+    - [ ] Test analytics endpoints (data shape)
+    - [ ] Test recommendations (logic check)
+- [ ] 3.2 Security
+    - [ ] Verify auth on new endpoints (public vs protected)
 
-## Phase 4: GenAI Appendix
-- [ ] 4.1 Create appendix_genai_logs.md with sample conversations
-
-## Commit Strategy
-- Commit after each major section completion
-- Use "Docs:" prefix for commit messages
+## Phase 4: Documentation (Future Phase - Claude)
+- [ ] API Documentation PDF (referencing new endpoints)
+- [ ] Technical Report Upgrade (Novel integration, design, GenAI alternatives)
+- [ ] Slide Deck Content

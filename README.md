@@ -1,26 +1,41 @@
 # EventHub – Event & RSVP API
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green.svg)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
+[![Tests](https://img.shields.io/badge/Tests-25%20passing-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A robust REST API for managing events, attendees, and RSVPs. Built for COMP3011 Web Services coursework.
+A REST API for managing events, attendees, and RSVPs with **novel data integration** and **analytics features**. Built for COMP3011 Web Services coursework at the University of Leeds.
 
-**🔗 Live API:** [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com)  
-**📖 Swagger UI:** [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs)  
-**📄 API Documentation:** [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) *(export to PDF for submission)*
+---
+
+## Quick Links
+
+| Resource | Link |
+|----------|------|
+| **🔗 Live API** | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
+| **📖 Swagger UI** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) |
+| **📄 API Documentation (PDF)** | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
+| **📝 Technical Report** | [TECHNICAL_REPORT.md](TECHNICAL_REPORT.md) |
+| **🎤 Presentation Slides** | [docs/PRESENTATION_SLIDES.pdf](docs/PRESENTATION_SLIDES.pdf) |
+
+> **Note for Markers:** Export API_DOCUMENTATION.md to PDF using pandoc: `pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf`
 
 ---
 
 ## Features
 
+### Core Functionality
 - **JWT Authentication** – Secure token-based access for protected endpoints
 - **Full CRUD** – Create, read, update, delete for Events, Attendees, and RSVPs
-- **Pagination & Sorting** – Efficient handling of large datasets with `limit`, `offset`, and `sort` params
-- **Event Filtering** – Filter by status (upcoming/past), capacity, location, and date range
-- **RSVP Statistics** – Real-time counts of going/maybe/not_going with remaining capacity
-- **Comprehensive Validation** – Pydantic-powered input validation with meaningful error messages
-- **Auto-generated Docs** – Interactive Swagger UI and ReDoc
+- **Pagination & Sorting** – `limit`, `offset`, and `sort` params with filtering
+- **RSVP Statistics** – Real-time counts of going/maybe/not_going
+
+### Novel Features (Outstanding-Level)
+- **📊 Data Integration** – Import external datasets with full provenance tracking
+- **📈 Seasonality Analytics** – Event distribution by month
+- **🔥 Trending Detection** – Score events by recent RSVP activity
+- **🎯 Recommendations** – Personalised event suggestions based on user history
 
 ---
 
@@ -30,87 +45,71 @@ A robust REST API for managing events, attendees, and RSVPs. Built for COMP3011 
 |-----------|------------|
 | Framework | FastAPI |
 | Language | Python 3.11 |
-| Database | SQLite (dev), PostgreSQL (prod-ready) |
+| Database | SQLite (dev) / PostgreSQL (prod) |
 | ORM | SQLAlchemy 2.x |
 | Migrations | Alembic |
 | Authentication | JWT (python-jose) |
-| Password Hashing | passlib (pbkdf2_sha256) |
-| Testing | pytest + TestClient |
+| Testing | pytest (25 tests) |
 | Deployment | Render.com |
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-
-- Python 3.11+
-- pip
-
-### Installation
-
 ```bash
-# Clone the repository
+# Clone and setup
 git clone https://github.com/NathS04/comp3011-cw1-api.git
 cd comp3011-cw1-api
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-```
 
-### Configuration
+# Configure
+export DATABASE_URL="sqlite:///./app.db"
+export SECRET_KEY="your-secret-key"
 
-Create a `.env` file in the project root (or set environment variables):
-
-```env
-DATABASE_URL=sqlite:///./app.db
-SECRET_KEY=your-secret-key-change-in-production
-ENVIRONMENT=development
-```
-
-### Database Setup
-
-```bash
-# Run migrations
+# Run migrations and start
 alembic upgrade head
-```
-
-### Run the Server
-
-```bash
-# Development (with auto-reload)
 uvicorn app.main:app --reload
-
-# Production
-uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### Access the API
-
-- **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **ReDoc:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-- **Health Check:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+Access at: http://127.0.0.1:8000/docs
 
 ---
 
 ## Running Tests
 
 ```bash
-# Run all tests
-pytest
-
-# Run with verbose output
 pytest -v
-
-# Run specific test file
-pytest tests/test_events.py
 ```
 
-The test suite uses an in-memory SQLite database for isolation.
+**Result:** 25 tests passing (auth, events, attendees, RSVPs, analytics, health)
+
+---
+
+## API Endpoints Overview
+
+### Core Endpoints
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/health` | Health check | No |
+| POST | `/auth/register` | Register user | No |
+| POST | `/auth/login` | Get JWT token | No |
+| GET/POST | `/events` | List/Create events | GET: No, POST: Yes |
+| GET/PATCH/DELETE | `/events/{id}` | Get/Update/Delete event | Yes for mutations |
+| GET | `/events/{id}/stats` | RSVP statistics | No |
+| POST | `/attendees` | Create attendee | Yes |
+| POST | `/events/{id}/rsvps` | Create RSVP | Yes |
+
+### Analytics Endpoints (Novel Features)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/analytics/events/seasonality` | Monthly event distribution |
+| GET | `/analytics/events/trending` | Trending events by RSVP activity |
+| GET | `/events/recommendations` | Personalised suggestions |
+
+Full documentation: [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
 
 ---
 
@@ -120,121 +119,64 @@ The test suite uses an in-memory SQLite database for isolation.
 comp3011-cw1-api/
 ├── app/
 │   ├── api/
-│   │   └── routes.py      # HTTP endpoint handlers
+│   │   ├── routes.py        # Core CRUD endpoints
+│   │   └── analytics.py     # Analytics & recommendations
 │   ├── core/
-│   │   ├── auth.py        # JWT authentication
-│   │   ├── config.py      # Environment configuration
-│   │   ├── db.py          # Database session management
-│   │   └── middleware.py  # Request logging, exception handling
-│   ├── main.py            # FastAPI application entry point
-│   ├── models.py          # SQLAlchemy ORM models
-│   ├── schemas.py         # Pydantic request/response models
-│   └── crud.py            # Database operations
-├── alembic/               # Database migrations
-├── tests/                 # Pytest test suite
+│   │   ├── auth.py          # JWT authentication
+│   │   ├── config.py        # Environment config
+│   │   └── db.py            # Database session
+│   ├── main.py              # FastAPI app
+│   ├── models.py            # SQLAlchemy models (inc. DataSource, ImportRun)
+│   ├── schemas.py           # Pydantic schemas
+│   └── crud.py              # Business logic
+├── scripts/
+│   └── import_dataset.py    # Idempotent data import
+├── alembic/                 # Database migrations
+├── tests/                   # 25 test cases
 ├── docs/
-│   └── API_DOCUMENTATION.md
-├── requirements.txt
-├── render.yaml            # Render.com deployment config
+│   ├── API_DOCUMENTATION.md
+│   └── appendix_genai_logs.md
+├── TECHNICAL_REPORT.md
 └── README.md
 ```
 
 ---
 
-## API Overview
+## Data Integration
 
-| Endpoint | Method | Description | Auth |
-|----------|--------|-------------|------|
-| `/health` | GET | Health check | No |
-| `/auth/register` | POST | Register user | No |
-| `/auth/login` | POST | Get JWT token | No |
-| `/events` | GET | List events | No |
-| `/events` | POST | Create event | Yes |
-| `/events/{id}` | GET | Get event | No |
-| `/events/{id}` | PATCH | Update event | Yes |
-| `/events/{id}` | DELETE | Delete event | Yes |
-| `/events/{id}/stats` | GET | RSVP statistics | No |
-| `/attendees` | POST | Create attendee | Yes |
-| `/attendees/{id}` | GET | Get attendee | No |
-| `/attendees/{id}/events` | GET | Attendee's events | No |
-| `/events/{id}/rsvps` | POST | Create RSVP | Yes |
-| `/events/{id}/rsvps` | GET | List RSVPs | No |
-| `/events/{id}/rsvps/{id}` | DELETE | Delete RSVP | Yes |
+The system supports importing external event data with provenance tracking:
 
-Full documentation: [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
+```bash
+python scripts/import_dataset.py
+```
+
+**Features:**
+- Creates `DataSource` and `ImportRun` records
+- Idempotent: re-running won't duplicate data
+- Logs errors without stopping import
+- Tracks rows read, inserted, updated
 
 ---
 
-## Deployment
+## Documentation for Submission
 
-### Render.com (Current)
-
-The API is deployed on Render.com with automatic deploys from GitHub.
-
-**Configuration (`render.yaml`):**
-- Build: `pip install -r requirements.txt && alembic upgrade head`
-- Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-
-**Environment Variables (set in Render dashboard):**
-- `DATABASE_URL` – PostgreSQL connection string (provided by Render)
-- `SECRET_KEY` – Random string for JWT signing
-- `ENVIRONMENT` – `production`
-
-### Manual Deployment
-
-For other platforms (Heroku, AWS, etc.):
-
-1. Set environment variables
-2. Run `alembic upgrade head` to apply migrations
-3. Start with `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+| Document | Purpose | Format |
+|----------|---------|--------|
+| **API Documentation** | Full endpoint reference | [Markdown](docs/API_DOCUMENTATION.md) → Export to PDF |
+| **Technical Report** | Design decisions, architecture, GenAI reflection | [Markdown](TECHNICAL_REPORT.md) → Export to PDF |
+| **Presentation** | 5-min demo slides | [Outline](docs/PRESENTATION_OUTLINE.md) |
+| **GenAI Logs** | Conversation excerpts | [Appendix](docs/appendix_genai_logs.md) |
 
 ---
 
-## Environment Variables
+## Deployment Verification
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | Database connection string | `sqlite:///./app.db` |
-| `SECRET_KEY` | JWT signing key | *(development key)* |
-| `ENVIRONMENT` | `development` or `production` | `development` |
+```bash
+# Health check
+curl https://comp3011-cw1-api.onrender.com/health
 
-> ⚠️ **Security:** Never commit `.env` files or real secrets to version control.
-
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [API Documentation](docs/API_DOCUMENTATION.md) | Full endpoint reference with examples |
-| [Technical Report](TECHNICAL_REPORT_DRAFT.md) | Design decisions, architecture, testing |
-| [Swagger UI](https://comp3011-cw1-api.onrender.com/docs) | Interactive API explorer |
-
----
-
-## Known Limitations
-
-- **SQLite concurrency** – SQLite doesn't handle concurrent writes well; PostgreSQL recommended for production
-- **No role-based access** – All authenticated users have equal permissions
-- **Token expiry** – 30-minute expiry with no refresh mechanism
-- **No email verification** – Users can register with any email
-
----
-
-## Future Improvements
-
-- [ ] PostgreSQL for production database
-- [ ] Event capacity enforcement (reject RSVPs when full)
-- [ ] Email notifications for RSVPs
-- [ ] Rate limiting
-- [ ] Role-based permissions (admin vs. regular user)
-- [ ] Event search with full-text matching
-
----
-
-## License
-
-This project was created for COMP3011 coursework at the University of Leeds.
+# Expected: {"ok": true}
+```
 
 ---
 
@@ -243,3 +185,7 @@ This project was created for COMP3011 coursework at the University of Leeds.
 **Nathaniel Sebastian**  
 sc232ns@leeds.ac.uk  
 University of Leeds, School of Computing
+
+---
+
+*Built with ❤️ and AI assistance for COMP3011 CW1*

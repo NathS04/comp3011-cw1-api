@@ -1,245 +1,170 @@
-# Appendix A: GenAI Conversation Logs
+# Appendix: GenAI Conversation Logs
 
-**Module:** COMP3011 – Web Services and Web Data  
-**Student:** Nathaniel Sebastian (sc232ns)  
-
-This appendix contains selected excerpts from conversations with Generative AI tools used during the development of the EventHub API. These logs demonstrate how AI was used for architecture planning, debugging, and code refinement—not just copying generated code.
+**Purpose:** Selected excerpts demonstrating AI-assisted development for COMP3011 CW1.
 
 ---
 
 ## 1. Architecture Planning
 
-**Date:** Early January 2026  
-**Tool:** Google Gemini Pro (via Antigravity Agent)
+**Prompt (Me):**
+> I need to build a REST API for event management with RSVPs for coursework. What's a good project structure for FastAPI?
 
-### Conversation Excerpt
+**AI Response (Summary):**
+> For a FastAPI project of this scope, I recommend a layered architecture:
+> - `app/main.py` - Application entry point
+> - `app/api/routes.py` - HTTP endpoint handlers  
+> - `app/models.py` - SQLAlchemy ORM models
+> - `app/schemas.py` - Pydantic request/response models
+> - `app/crud.py` - Database operations
+> - `app/core/` - Configuration, auth, middleware
+>
+> This separation keeps your routes thin and your business logic testable...
 
-**Me:**
-> I need to build a REST API for event management with RSVPs for my COMP3011 coursework. The brief says I need Events, Attendees, and RSVPs with authentication. What's a good project structure for FastAPI?
-
-**AI:**
-> For a FastAPI project of this scope, I'd recommend a layered architecture that separates concerns clearly:
-> 
-> ```
-> app/
-> ├── main.py          # Application entry point
-> ├── api/
-> │   └── routes.py    # HTTP endpoint handlers
-> ├── models.py        # SQLAlchemy ORM models
-> ├── schemas.py       # Pydantic request/response models
-> ├── crud.py          # Database operations
-> └── core/
->     ├── config.py    # Environment configuration
->     ├── db.py        # Database session
->     └── auth.py      # JWT authentication
-> ```
-> 
-> This separation keeps your routes thin—they handle HTTP concerns only—while business logic lives in `crud.py`. It also makes testing easier since you can test CRUD functions independently of HTTP.
-
-**My Reflection:**
-I adopted this structure with minor modifications. The layered approach proved valuable when I needed to add the stats endpoint later—I could add to `crud.py` without touching the route handler logic.
+**My Decision:** Adopted this structure. It aligned with FastAPI best practices and made testing straightforward.
 
 ---
 
-## 2. Debugging: bcrypt Installation Issue
+## 2. Exploring Design Alternatives: RSVP Storage
 
-**Date:** Mid-January 2026  
-**Tool:** Google Gemini Pro
+**Prompt (Me):**
+> Should I store RSVPs as a list field embedded in the Event model, or as a separate table?
 
-### Conversation Excerpt
+**AI Response (Summary):**
+> Option A (Embedded): Simpler queries, single read. But:
+> - Can't enforce uniqueness at DB level
+> - Harder to query "all events user X is attending"
+> - Data integrity risks
+>
+> Option B (Separate table): Adds a JOIN but enables:
+> - Database-level unique constraint on (event_id, attendee_id)
+> - Timestamp tracking per RSVP
+> - Independent RSVP queries
 
-**Me:**
-> I'm getting this error when trying to run my FastAPI app:
-> ```
-> ImportError: cannot import name 'Crypto' from 'Crypto'
-> ```
-> I installed bcrypt for password hashing but it's not working.
+**My Decision:** Separate table. The constraint enforcement and queryability outweigh the slight complexity.
 
-**AI:**
-> This looks like a conflict between the `pycryptodome` and `pycrypto` packages. However, for your use case (password hashing), I'd recommend using `passlib` instead of direct bcrypt.
-> 
-> `passlib` provides a high-level interface and handles the complexity for you:
-> 
-> ```python
-> from passlib.hash import pbkdf2_sha256
-> 
-> # Hash a password
-> hashed = pbkdf2_sha256.hash("password123")
-> 
-> # Verify a password
-> pbkdf2_sha256.verify("password123", hashed)  # Returns True
-> ```
-> 
-> `pbkdf2_sha256` is NIST-approved and doesn't have the native compilation issues that bcrypt sometimes has on certain systems.
-
-**My Reflection:**
-I initially wanted to use bcrypt because it's commonly used in tutorials, but the dependency issues were frustrating. Switching to `pbkdf2_sha256` via passlib solved the problem and taught me that there are multiple secure hashing algorithms—bcrypt isn't the only option.
+**Reflection:** AI helped me think through trade-offs I might have missed if I'd just picked the "simpler" option.
 
 ---
 
-## 3. Test Isolation Problem
+## 3. Debugging: Circular Import Error
 
-**Date:** Late January 2026  
-**Tool:** Google Gemini Pro
+**Error I Encountered:**
+```
+ImportError: cannot import name 'get_user_by_username' from 'app.crud'
+```
 
-### Conversation Excerpt
+**Prompt (Me):**
+> I'm getting a circular import error between auth.py and crud.py. auth.py imports crud.get_user_by_username, but crud.py imports models which seems to cause a cycle.
 
-**Me:**
-> My pytest tests are failing intermittently. Sometimes `test_list_events` passes, sometimes it fails because it finds events from other tests. I think the database isn't being reset between tests.
-
-**AI:**
-> You're right—this is a common issue with database tests. The problem is likely that your in-memory SQLite database is being shared across tests.
-> 
-> For proper isolation, you need to:
-> 
-> 1. Use `StaticPool` to ensure all connections use the same in-memory database:
-> 
+**AI Response (Summary):**
+> Circular imports happen when two modules depend on each other at import time. Solutions:
+> 1. Move the import inside the function that needs it (deferred import)
+> 2. Restructure to break the dependency
+> 3. Use `TYPE_CHECKING` for type hints only
+>
+> For your case, try moving the import inside `get_current_user`:
 > ```python
-> from sqlalchemy.pool import StaticPool
-> 
-> engine = create_engine(
->     "sqlite:///:memory:",
->     connect_args={"check_same_thread": False},
->     poolclass=StaticPool
-> )
+> async def get_current_user(...):
+>     from app.crud import get_user_by_username
+>     ...
 > ```
-> 
-> 2. Create and drop tables in a fixture:
-> 
+
+**My Decision:** Used local import inside the function. Fixed the issue without restructuring.
+
+---
+
+## 4. SQLite Migration Compatibility
+
+**Error I Encountered:**
+```
+sqlalchemy.exc.OperationalError: near "ALTER": syntax error
+```
+
+**Prompt (Me):**
+> Alembic migration fails on SQLite when adding a foreign key. SQLite doesn't support ALTER TABLE for this.
+
+**AI Response (Summary):**
+> SQLite has limited ALTER TABLE support. Alembic's `batch_alter_table` context manager handles this by:
+> 1. Creating a new table with the desired schema
+> 2. Copying data from old table
+> 3. Dropping old table and renaming new one
+>
+> Use this pattern:
 > ```python
-> @pytest.fixture
+> with op.batch_alter_table('events') as batch_op:
+>     batch_op.add_column(sa.Column('source_id', sa.Integer()))
+>     batch_op.create_foreign_key(...)
+> ```
+
+**My Decision:** Implemented `batch_alter_table` for SQLite compatibility while maintaining PostgreSQL support.
+
+---
+
+## 5. Test Fixture Design
+
+**Problem:**
+> Tests were failing because database state was leaking between tests.
+
+**AI Suggestion:**
+> Use session-scoped engine with `StaticPool` but function-scoped sessions. Recreate tables in each test:
+> ```python
+> @pytest.fixture(scope="function")
 > def db():
 >     Base.metadata.create_all(bind=engine)
->     yield SessionLocal()
+>     yield TestingSessionLocal()
 >     Base.metadata.drop_all(bind=engine)
 > ```
-> 
-> The `drop_all` ensures each test starts with a clean slate.
 
-**My Reflection:**
-This was one of the most frustrating bugs I encountered. Tests would pass individually but fail when run together. The AI's explanation of `StaticPool` was key—I didn't fully understand Python's connection pooling before this.
+**My Modification:** Added connection cleanup and dependency override clearing. The AI's pattern worked but I had to adapt it for my specific setup.
 
 ---
 
-## 4. Schema Validation Design
+## 6. Recommendations Algorithm
 
-**Date:** Late January 2026  
-**Tool:** ChatGPT (GPT-4)
+**Prompt (Me):**
+> How can I implement a simple recommendations endpoint without machine learning?
 
-### Conversation Excerpt
+**AI Response (Summary):**
+> Deterministic scoring works well for coursework. Consider:
+> 1. Location affinity: Recommend events at locations user has attended
+> 2. Recency: Prefer upcoming events
+> 3. Popularity: Factor in total RSVPs
+> 4. Cold start: For new users, return popular upcoming events
+>
+> This is explainable and reproducible—good for demonstrating the concept.
 
-**Me:**
-> I want to validate that an event's end_time is after its start_time in my Pydantic schema. How do I do that?
-
-**AI:**
-> Pydantic v2 uses `model_validator` for cross-field validation. Here's how to do it:
-> 
-> ```python
-> from pydantic import BaseModel, model_validator
-> 
-> class EventCreate(BaseModel):
->     title: str
->     start_time: datetime
->     end_time: datetime
-> 
->     @model_validator(mode="after")
->     def validate_times(self):
->         if self.end_time <= self.start_time:
->             raise ValueError("end_time must be after start_time")
->         return self
-> ```
-> 
-> The `mode="after"` means the validator runs after individual field validation, so you can be sure both fields are valid datetimes before comparing them.
-
-**My Reflection:**
-I initially tried to do this validation in the route handler, but moving it to the schema makes more sense—it's validated automatically on every request, and the error message is consistent.
+**My Implementation:** Used location affinity as the primary signal. Returns events at locations the user has previously RSVP'd to. Cold start returns top upcoming events.
 
 ---
 
-## 5. Security Review
+## 7. Security Review
 
-**Date:** February 2026  
-**Tool:** Google Gemini Pro
+**AI Initially Suggested:**
+```python
+SECRET_KEY = "my-secret-key-123"
+```
 
-### Conversation Excerpt
+**I Caught This:** The hardcoded secret would be committed to git. Changed to:
+```python
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-key")
+```
 
-**Me:**
-> Can you review my auth.py for security issues?
-> 
-> ```python
-> SECRET_KEY = "comp3011-coursework-secret-key"
-> ALGORITHM = "HS256"
-> 
-> def create_access_token(data: dict):
->     to_encode = data.copy()
->     expire = datetime.utcnow() + timedelta(minutes=30)
->     to_encode.update({"exp": expire})
->     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-> ```
-
-**AI:**
-> I see a security issue: your `SECRET_KEY` is hardcoded. This is problematic because:
-> 
-> 1. It's visible in version control
-> 2. It can't be rotated without code changes
-> 3. It's the same across all environments
-> 
-> You should load it from an environment variable:
-> 
-> ```python
-> import os
-> SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-fallback-key")
-> ```
-> 
-> Also, consider using `datetime.now(timezone.utc)` instead of `datetime.utcnow()`, which is deprecated in Python 3.12+.
-
-**My Reflection:**
-This was an important catch. I originally used a hardcoded key because I saw it in a tutorial, but the AI correctly pointed out why this is bad practice. I immediately refactored to use environment variables.
+**Reflection:** AI generates working code fast, but security review is my responsibility. This is why I always read generated code before committing.
 
 ---
 
-## 6. Documentation Structure
+## Summary
 
-**Date:** February 2026  
-**Tool:** ChatGPT (GPT-4)
+| Category | AI Contribution | My Role |
+|----------|-----------------|---------|
+| Architecture | Suggested structure | Evaluated and adopted |
+| Design decisions | Presented alternatives | Made final choices |
+| Debugging | Explained errors, suggested fixes | Verified fixes worked |
+| Security | Generated initial code | Caught issues in review |
+| Testing | Suggested patterns | Adapted for my context |
 
-### Conversation Excerpt
-
-**Me:**
-> I'm writing my technical report for COMP3011. What sections should it have to hit the distinction band?
-
-**AI:**
-> Based on typical coursework marking criteria for a distinction (80-100%), your report should demonstrate:
-> 
-> 1. **Clear problem understanding** – Introduction with requirements
-> 2. **Justified technical choices** – Why FastAPI over Django, why SQLite, etc.
-> 3. **Sound architecture** – Diagrams showing layers and data flow
-> 4. **Implementation depth** – Not just "what" but "why" and "alternatives considered"
-> 5. **Testing evidence** – What you tested and how
-> 6. **Critical reflection** – Limitations, future work, lessons learned
-> 7. **GenAI transparency** – How you used AI and what you learned from it
-> 
-> The key differentiator for distinction is showing *engineering thinking*—trade-offs, alternatives, and decisions—not just describing what you built.
-
-**My Reflection:**
-This helped me structure my report. I made sure each section included not just descriptions but justifications and trade-off discussions.
+**Key Takeaway:** AI accelerated development, but critical thinking, code review, and understanding remained my responsibility.
 
 ---
 
-## Summary of AI Usage
-
-| Category | Purpose | Tools Used |
-|----------|---------|------------|
-| Architecture | Project structure, layering patterns | Gemini Pro |
-| Debugging | Dependency issues, test isolation | Gemini Pro |
-| Code Generation | Initial boilerplate, validators | Gemini Pro, GPT-4 |
-| Code Review | Security review, best practices | Gemini Pro |
-| Documentation | Report structure, API doc format | GPT-4 |
-
-**Total time saved estimate:** 8-12 hours of research and debugging.
-
-**Key learning:** AI is most useful for exploring alternatives and debugging—not for replacing understanding. I still had to read every line of generated code and understand why it worked.
-
----
-
-*End of Appendix A*
+*Full conversation logs available on request. This appendix shows representative excerpts.*

@@ -173,3 +173,32 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
+# Analytics & Recommendations Schemas
+
+class SeasonalityItem(BaseModel):
+    month: str
+    count: int
+    top_categories: List[str]
+
+class SeasonalityResponse(BaseModel):
+    items: List[SeasonalityItem]
+
+class TrendingItem(BaseModel):
+    event_id: int
+    title: str
+    trending_score: float
+    recent_rsvps: int
+
+class RecommendationItem(BaseModel):
+    event_id: int
+    title: str
+    score: float
+    reason: str
+    location: str
+    start_time: datetime
+
+class RecommendationResponse(BaseModel):
+    recommendations: List[RecommendationItem]
+    user_id: int
+
+

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api.routes import router
+from .api.routes import router as api_router
+from .api.analytics import router as analytics_router
 from .core.middleware import RequestLoggingMiddleware, global_exception_handler
 
 app = FastAPI(
@@ -33,4 +34,5 @@ app.add_middleware(
 app.add_middleware(RequestLoggingMiddleware)
 app.add_exception_handler(Exception, global_exception_handler)
 
-app.include_router(router)
+app.include_router(analytics_router)
+app.include_router(api_router)

@@ -1,0 +1,4 @@
+id,title,description,location,start_time,end_time,capacity
+EXT_001,Advanced AI Workshop,Deep dive into LLMs,Leeds Tech Hub,2026-05-10T10:00:00,2026-05-10T16:00:00,50
+EXT_002,Community Coding,Social coding event,University Union,2026-05-12T18:00:00,2026-05-12T21:00:00,100
+EXT_003,Data Science Seminar,Guest speaker on Big Data,Roger Stevens LT,2026-05-15T14:00:00,2026-05-15T15:30:00,200
