@@ -16,11 +16,11 @@ A REST API for managing events, attendees, and RSVPs with **novel data integrati
 | **📂 GitHub Repo** | [github.com/NathS04/comp3011-cw1-api](https://github.com/NathS04/comp3011-cw1-api) |
 | **🔗 Live API** | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
 | **📖 Swagger UI** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) |
-| **📄 API Documentation (PDF)** | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
-| **📝 Technical Report** | [TECHNICAL_REPORT.md](TECHNICAL_REPORT.md) |
-| **🎤 Presentation Slides** | [docs/PRESENTATION_SLIDES.pdf](docs/PRESENTATION_SLIDES.pdf) |
+| **📄 API Documentation** | [docs/API_DOCUMENTATION.html](docs/API_DOCUMENTATION.html) (Print to PDF) |
+| **📝 Technical Report** | [TECHNICAL_REPORT.html](TECHNICAL_REPORT.html) (Print to PDF) |
+| **🎤 Presentation Slides** | [docs/PRESENTATION_OUTLINE.md](docs/PRESENTATION_OUTLINE.md) |
 
-> **Note for Markers:** Export API_DOCUMENTATION.md to PDF using pandoc: `pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf`
+> **Note for Markers:** Open the `.html` documentation files in a browser and use `File > Print > Save as PDF` to generate PDF versions.
 
 ---
 

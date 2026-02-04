@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>API Documentation</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">API Documentation</h1>
+</header>
+<h1 id="eventhub-api-documentation">EventHub API Documentation</h1>
+<p><strong>Version:</strong> 1.1.0<br />
+<strong>Author:</strong> Nathaniel Sebastian (sc232ns@leeds.ac.uk)<br />
+<strong>Last Updated:</strong> 4th February 2026</p>
+<hr />
+<h2 id="how-to-generate-pdf">How to Generate PDF</h2>
+<p>To export this documentation as a PDF (required for submission):</p>
+<p><strong>Option 1: Using Pandoc (Recommended)</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> docs/API_DOCUMENTATION.md <span class="at">-o</span> docs/API_DOCUMENTATION.pdf <span class="at">--pdf-engine</span><span class="op">=</span>xelatex</span></code></pre></div>
+<p><strong>Option 2: VS Code</strong> 1. Install “Markdown PDF”
+extension 2. Open this file → Ctrl+Shift+P → “Markdown PDF: Export
+(pdf)”</p>
+<p><strong>Option 3: Browser</strong> 1. Open in any Markdown viewer 2.
+Print to PDF (Ctrl+P → Save as PDF)</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#base-urls">Base URLs</a></li>
+<li><a href="#authentication">Authentication</a></li>
+<li><a href="#events">Events</a></li>
+<li><a href="#attendees">Attendees</a></li>
+<li><a href="#rsvps">RSVPs</a></li>
+<li><a href="#analytics--recommendations">Analytics &amp;
+Recommendations</a></li>
+<li><a href="#error-response-format">Error Handling</a></li>
+<li><a href="#running-locally">Running Locally</a></li>
+</ol>
+<hr />
+<h2 id="base-urls">Base URLs</h2>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Production</strong></td>
+<td><code>https://comp3011-cw1-api.onrender.com</code></td>
+</tr>
+<tr>
+<td><strong>Local Development</strong></td>
+<td><code>http://127.0.0.1:8000</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interactive Documentation:</strong> - Swagger UI:
+<code>/docs</code> - ReDoc: <code>/redoc</code></p>
+<hr />
+<h2 id="authentication">Authentication</h2>
+<p>Most endpoints that modify data (POST, PATCH, DELETE) require a valid
+JWT token. Read operations (GET) are generally public.</p>
+<h3 id="auth-flow-summary">Auth Flow Summary</h3>
+<pre><code>1. POST /auth/register  →  Create account
+2. POST /auth/login     →  Receive JWT token
+3. Include token in requests: Authorization: Bearer &lt;token&gt;</code></pre>
+<h3 id="register-a-new-user">Register a New User</h3>
+<p><strong>Endpoint:</strong> <code>POST /auth/register</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Request Body:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;johndoe&quot;</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;mySecurePassword123&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Success Response (201 Created):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;johndoe&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-04T12:30:00Z&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Error Responses:</strong> | Status | Meaning | |——–|———| |
+<code>400 Bad Request</code> | Username or email already registered | |
+<code>422 Unprocessable Entity</code> | Validation failed (e.g.,
+password too short) |</p>
+<hr />
+<h3 id="login">Login</h3>
+<p><strong>Endpoint:</strong> <code>POST /auth/login</code><br />
+<strong>Auth Required:</strong> No<br />
+<strong>Content-Type:</strong>
+<code>application/x-www-form-urlencoded</code></p>
+<p><strong>Request Body (Form Data):</strong></p>
+<pre><code>username=johndoe
+password=mySecurePassword123</code></pre>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;access_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;</span><span class="fu">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token_type&quot;</span><span class="fu">:</span> <span class="st">&quot;bearer&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Error Response (401 Unauthorized):</strong></p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;detail&quot;</span><span class="fu">:</span> <span class="st">&quot;Incorrect username or password&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="using-the-token">Using the Token</h3>
+<p>Include the token in the <code>Authorization</code> header for all
+protected requests:</p>
+<pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+<p><strong>Token Expiry:</strong> 30 minutes</p>
+<hr />
+<h2 id="events">Events</h2>
+<h3 id="list-events">List Events</h3>
+<p><strong>Endpoint:</strong> <code>GET /events</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Query Parameters:</strong></p>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 15%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>limit</code></td>
+<td>integer</td>
+<td>Max results (default: 10, max: 100)</td>
+<td><code>?limit=20</code></td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td>integer</td>
+<td>Skip N results (default: 0)</td>
+<td><code>?offset=10</code></td>
+</tr>
+<tr>
+<td><code>sort</code></td>
+<td>string</td>
+<td>Sort field, prefix <code>-</code> for desc</td>
+<td><code>?sort=-start_time</code></td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>string</td>
+<td>Search title (partial match)</td>
+<td><code>?q=tech</code></td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td>string</td>
+<td>Filter by location</td>
+<td><code>?location=Leeds</code></td>
+</tr>
+<tr>
+<td><code>start_after</code></td>
+<td>datetime</td>
+<td>Events starting after</td>
+<td><code>?start_after=2026-03-01T00:00:00</code></td>
+</tr>
+<tr>
+<td><code>start_before</code></td>
+<td>datetime</td>
+<td>Events starting before</td>
+<td><code>?start_before=2026-04-01T00:00:00</code></td>
+</tr>
+<tr>
+<td><code>min_capacity</code></td>
+<td>integer</td>
+<td>Minimum capacity</td>
+<td><code>?min_capacity=50</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>string</td>
+<td><code>upcoming</code> or <code>past</code></td>
+<td><code>?status=upcoming</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example Request:</strong></p>
+<pre><code>GET /events?limit=5&amp;sort=-start_time&amp;status=upcoming</code></pre>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;items&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Tech Meetup Leeds&quot;</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Monthly gathering for tech enthusiasts&quot;</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Digital Hub&quot;</span><span class="fu">,</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03-15T18:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;end_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03-15T21:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">50</span><span class="fu">,</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-01T10:00:00Z&quot;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="dv">42</span><span class="fu">,</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;offset&quot;</span><span class="fu">:</span> <span class="dv">0</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="create-event">Create Event</h3>
+<p><strong>Endpoint:</strong> <code>POST /events</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Request Body:</strong></p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Freshers Welcome Social&quot;</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Welcome event for new students at Leeds University.&quot;</span><span class="fu">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Student Union, Riley Smith Hall&quot;</span><span class="fu">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T19:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;end_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T23:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">200</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Validation Rules:</strong> | Field | Rules | |——-|——-| |
+<code>title</code> | Required, 1–200 characters | |
+<code>description</code> | Optional, max 1000 characters | |
+<code>location</code> | Required, 1–200 characters | |
+<code>start_time</code> | Required, ISO 8601 datetime | |
+<code>end_time</code> | Required, must be after <code>start_time</code>
+| | <code>capacity</code> | Required, integer ≥ 1 |</p>
+<p><strong>Success Response (201 Created):</strong></p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Freshers Welcome Social&quot;</span><span class="fu">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Welcome event for new students at Leeds University.&quot;</span><span class="fu">,</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Student Union, Riley Smith Hall&quot;</span><span class="fu">,</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T19:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;end_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T23:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">200</span><span class="fu">,</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-04T14:00:00Z&quot;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="get-event-by-id">Get Event by ID</h3>
+<p><strong>Endpoint:</strong> <code>GET /events/{id}</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Success Response (200 OK):</strong> Returns single event
+object.</p>
+<p><strong>Error Response (404):</strong>
+<code>{"detail": "Event not found"}</code></p>
+<hr />
+<h3 id="update-event">Update Event</h3>
+<p><strong>Endpoint:</strong> <code>PATCH /events/{id}</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Request Body (partial update):</strong></p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Tech Meetup Leeds 2026&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">75</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Only include fields you want to update.</p>
+<hr />
+<h3 id="delete-event">Delete Event</h3>
+<p><strong>Endpoint:</strong> <code>DELETE /events/{id}</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Success Response:</strong> <code>204 No Content</code></p>
+<hr />
+<h3 id="get-event-statistics">Get Event Statistics</h3>
+<p><strong>Endpoint:</strong> <code>GET /events/{id}/stats</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;going&quot;</span><span class="fu">:</span> <span class="dv">35</span><span class="fu">,</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;maybe&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;not_going&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;remaining_capacity&quot;</span><span class="fu">:</span> <span class="dv">15</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Formula:</strong>
+<code>remaining_capacity = capacity - going</code></p>
+<hr />
+<h2 id="attendees">Attendees</h2>
+<h3 id="create-attendee">Create Attendee</h3>
+<p><strong>Endpoint:</strong> <code>POST /attendees</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Request Body:</strong></p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice Smith&quot;</span><span class="fu">,</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;alice.smith@leeds.ac.uk&quot;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Success Response (201 Created):</strong></p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice Smith&quot;</span><span class="fu">,</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;alice.smith@leeds.ac.uk&quot;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Error:</strong> <code>409 Conflict</code> if email already
+registered.</p>
+<hr />
+<h3 id="get-attendee-by-id">Get Attendee by ID</h3>
+<p><strong>Endpoint:</strong> <code>GET /attendees/{id}</code><br />
+<strong>Auth Required:</strong> No</p>
+<hr />
+<h3 id="get-events-for-attendee">Get Events for Attendee</h3>
+<p><strong>Endpoint:</strong>
+<code>GET /attendees/{id}/events</code><br />
+<strong>Auth Required:</strong> No</p>
+<p>Returns all events the attendee has RSVP’d to.</p>
+<hr />
+<h2 id="rsvps">RSVPs</h2>
+<h3 id="create-rsvp">Create RSVP</h3>
+<p><strong>Endpoint:</strong>
+<code>POST /events/{event_id}/rsvps</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Request Body:</strong></p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;attendee_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;going&quot;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Valid status values:</strong> <code>going</code>,
+<code>maybe</code>, <code>not_going</code></p>
+<p><strong>Error Responses:</strong> - <code>404</code> – Event or
+attendee not found - <code>409</code> – Duplicate RSVP (attendee already
+RSVP’d to this event)</p>
+<hr />
+<h3 id="list-rsvps-for-event">List RSVPs for Event</h3>
+<p><strong>Endpoint:</strong>
+<code>GET /events/{event_id}/rsvps</code><br />
+<strong>Auth Required:</strong> No</p>
+<hr />
+<h3 id="delete-rsvp">Delete RSVP</h3>
+<p><strong>Endpoint:</strong>
+<code>DELETE /events/{event_id}/rsvps/{rsvp_id}</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<hr />
+<h2 id="analytics-recommendations">Analytics &amp; Recommendations</h2>
+<p>These endpoints provide derived insights beyond basic CRUD
+operations.</p>
+<h3 id="event-seasonality">Event Seasonality</h3>
+<p><strong>Endpoint:</strong>
+<code>GET /analytics/events/seasonality</code><br />
+<strong>Auth Required:</strong> No<br />
+<strong>Purpose:</strong> Aggregate events by month to identify seasonal
+patterns.</p>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;items&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span><span class="dt">&quot;month&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-01&quot;</span><span class="fu">,</span> <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span> <span class="dt">&quot;top_categories&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;General&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span><span class="dt">&quot;month&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02&quot;</span><span class="fu">,</span> <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">12</span><span class="fu">,</span> <span class="dt">&quot;top_categories&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;General&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span><span class="dt">&quot;month&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03&quot;</span><span class="fu">,</span> <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span> <span class="dt">&quot;top_categories&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;General&quot;</span><span class="ot">]</span><span class="fu">}</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="trending-events">Trending Events</h3>
+<p><strong>Endpoint:</strong>
+<code>GET /analytics/events/trending</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Query Parameters:</strong> | Parameter | Type | Default |
+Description | |———–|——|———|————-| | <code>window_days</code> | integer |
+30 | Days to consider for “recent” RSVPs | | <code>limit</code> |
+integer | 5 | Max events to return |</p>
+<p><strong>Trending Score Formula:</strong></p>
+<pre><code>score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)</code></pre>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;AI Workshop&quot;</span><span class="fu">,</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;trending_score&quot;</span><span class="fu">:</span> <span class="fl">15.5</span><span class="fu">,</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;recent_rsvps&quot;</span><span class="fu">:</span> <span class="dv">8</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">7</span><span class="fu">,</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Networking Night&quot;</span><span class="fu">,</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;trending_score&quot;</span><span class="fu">:</span> <span class="fl">12.0</span><span class="fu">,</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;recent_rsvps&quot;</span><span class="fu">:</span> <span class="dv">6</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<hr />
+<h3 id="personalised-recommendations">Personalised Recommendations</h3>
+<p><strong>Endpoint:</strong>
+<code>GET /events/recommendations</code><br />
+<strong>Auth Required:</strong> Yes<br />
+<strong>Purpose:</strong> Suggest upcoming events based on user’s RSVP
+history.</p>
+<p><strong>Algorithm:</strong> 1. Find attendee record matching the
+authenticated user’s email. 2. Identify locations the user has
+previously attended. 3. Recommend future events at those locations. 4.
+Cold start: If no history, return top upcoming events.</p>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;recommendations&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">12</span><span class="fu">,</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Python Meetup&quot;</span><span class="fu">,</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;score&quot;</span><span class="fu">:</span> <span class="fl">0.9</span><span class="fu">,</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;reason&quot;</span><span class="fu">:</span> <span class="st">&quot;Based on your interest in Leeds Digital Hub&quot;</span><span class="fu">,</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Digital Hub&quot;</span><span class="fu">,</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03-20T18:00:00Z&quot;</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">5</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="error-response-format">Error Response Format</h2>
+<p>All error responses follow a consistent format:</p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;detail&quot;</span><span class="fu">:</span> <span class="st">&quot;Human-readable error message&quot;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>For validation errors (422):</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;detail&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;loc&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;body&quot;</span><span class="ot">,</span> <span class="st">&quot;capacity&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;msg&quot;</span><span class="fu">:</span> <span class="st">&quot;Input should be greater than or equal to 1&quot;</span><span class="fu">,</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;greater_than_equal&quot;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="http-status-codes-summary">HTTP Status Codes Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>When Used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>200</code></td>
+<td>OK</td>
+<td>Successful GET, PATCH</td>
+</tr>
+<tr>
+<td><code>201</code></td>
+<td>Created</td>
+<td>Successful POST</td>
+</tr>
+<tr>
+<td><code>204</code></td>
+<td>No Content</td>
+<td>Successful DELETE</td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td>Bad Request</td>
+<td>Invalid data (duplicate username)</td>
+</tr>
+<tr>
+<td><code>401</code></td>
+<td>Unauthorized</td>
+<td>Missing/invalid JWT</td>
+</tr>
+<tr>
+<td><code>404</code></td>
+<td>Not Found</td>
+<td>Resource doesn’t exist</td>
+</tr>
+<tr>
+<td><code>409</code></td>
+<td>Conflict</td>
+<td>Duplicate entry</td>
+</tr>
+<tr>
+<td><code>422</code></td>
+<td>Unprocessable Entity</td>
+<td>Validation failed</td>
+</tr>
+<tr>
+<td><code>500</code></td>
+<td>Internal Server Error</td>
+<td>Unexpected error</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="running-locally">Running Locally</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Python 3.11+</li>
+<li>pip</li>
+</ul>
+<h3 id="setup">Setup</h3>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clone repository</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/NathS04/comp3011-cw1-api.git</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> comp3011-cw1-api</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create virtual environment</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv venv</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> venv/bin/activate  <span class="co"># Windows: venv\Scripts\activate</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Set environment variables</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">DATABASE_URL</span><span class="op">=</span><span class="st">&quot;sqlite:///./app.db&quot;</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">SECRET_KEY</span><span class="op">=</span><span class="st">&quot;your-secret-key&quot;</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Run migrations</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="ex">alembic</span> upgrade head</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Start server</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="ex">uvicorn</span> app.main:app <span class="at">--reload</span></span></code></pre></div>
+<h3 id="running-tests">Running Tests</h3>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-v</span></span></code></pre></div>
+<hr />
+<h2 id="demo-script-curl">Demo Script (cURL)</h2>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Health check</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/health</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Register</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://127.0.0.1:8000/auth/register <span class="dt">\</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;demo&quot;,&quot;email&quot;:&quot;demo@test.com&quot;,&quot;password&quot;:&quot;password123&quot;}&#39;</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Login</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="va">TOKEN</span><span class="op">=</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:8000/auth/login <span class="dt">\</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&quot;username=demo&amp;password=password123&quot;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.access_token&#39;</span><span class="va">)</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Create event</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://127.0.0.1:8000/events <span class="dt">\</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;title&quot;:&quot;Demo Event&quot;,&quot;location&quot;:&quot;Leeds&quot;,&quot;start_time&quot;:&quot;2026-03-01T10:00:00&quot;,&quot;end_time&quot;:&quot;2026-03-01T12:00:00&quot;,&quot;capacity&quot;:50}&#39;</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Get trending</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/analytics/events/trending</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Get recommendations</span></span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> http://127.0.0.1:8000/events/recommendations</span></code></pre></div>
+<hr />
+<h2 id="changelog">Changelog</h2>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1.0</td>
+<td>2026-02-04</td>
+<td>Added analytics and recommendations endpoints</td>
+</tr>
+<tr>
+<td>1.0.0</td>
+<td>2026-02-01</td>
+<td>Initial release</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Document generated for COMP3011 CW1 submission</em></p>
+</body>
+</html>
