@@ -101,6 +101,15 @@ class AttendeeCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     email: str = Field(min_length=3, max_length=255)
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "name": "Alex Smith",
+                "email": "alex.smith@example.com"
+            }
+        }
+    }
+
 class AttendeeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -110,6 +119,15 @@ class AttendeeOut(BaseModel):
 class RSVPCreate(BaseModel):
     attendee_id: int
     status: RSVPStatus
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "attendee_id": 1,
+                "status": "going"
+            }
+        }
+    }
 
 class RSVPOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
