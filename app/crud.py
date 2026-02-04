@@ -28,8 +28,8 @@ def list_events(
     start_before: Optional[datetime] = None,
     limit: int = 10,
     offset: int = 0,
-    offset: int = 0,
     sort: Optional[str] = None,
+    min_capacity: Optional[int] = None,
     status: Optional[str] = None
 ) -> dict:
     """
