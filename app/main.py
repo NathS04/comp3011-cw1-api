@@ -13,6 +13,13 @@ app = FastAPI(
     },
 )
 
+import logging
+logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Application starting up...")
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
