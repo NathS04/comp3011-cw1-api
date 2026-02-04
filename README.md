@@ -7,7 +7,8 @@
 A robust REST API for managing events, attendees, and RSVPs. Built for COMP3011 Web Services coursework.
 
 **🔗 Live API:** [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com)  
-**📖 Swagger UI:** [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs)
+**📖 Swagger UI:** [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs)  
+**📄 API Documentation:** [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) *(export to PDF for submission)*
 
 ---
 
