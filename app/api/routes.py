@@ -134,6 +134,16 @@ def get_attendee(attendee_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="attendee not found")
     return attendee
 
+@router.get("/attendees/{attendee_id}/events", response_model=List[EventOut])
+def get_attendee_events(attendee_id: int, db: Session = Depends(get_db)):
+    """
+    Get all events for a specific attendee.
+    """
+    attendee = crud.get_attendee(db, attendee_id)
+    if not attendee:
+        raise HTTPException(status_code=404, detail="attendee not found")
+    return crud.get_attendee_events(db, attendee_id)
+
 @router.post("/events/{event_id}/rsvps", response_model=RSVPOut, status_code=status.HTTP_201_CREATED)
 def create_rsvp(event_id: int, payload: RSVPCreate, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     """

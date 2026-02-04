@@ -138,6 +138,10 @@ def get_event_stats(db: Session, event: Event):
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
     return db.execute(select(User).where(User.username == username)).scalars().first()
 
+def get_attendee_events(db: Session, attendee_id: int) -> List[Event]:
+    stmt = select(Event).join(RSVP).where(RSVP.attendee_id == attendee_id)
+    return list(db.execute(stmt).scalars().all())
+
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.execute(select(User).where(User.email == email)).scalars().first()
 
