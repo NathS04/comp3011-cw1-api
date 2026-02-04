@@ -42,6 +42,19 @@ class EventCreate(BaseModel):
             raise ValueError("end_time must be after start_time")
         return self
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "End of Year Tech Gala",
+                "description": "A networking event for tech enthusiasts.",
+                "location": "Convention Center, Hall A",
+                "start_time": "2026-12-15T18:00:00",
+                "end_time": "2026-12-15T22:00:00",
+                "capacity": 200
+            }
+        }
+    }
+
 class EventUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
@@ -63,6 +76,15 @@ class EventUpdate(BaseModel):
             if self.end_time <= self.start_time:
                 raise ValueError("end_time must be after start_time")
         return self
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "End of Year Tech Gala (Updated)",
+                "capacity": 250
+            }
+        }
+    }
 
 class EventOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
