@@ -50,6 +50,14 @@ def test_login_wrong_password(client: TestClient):
     )
     assert response.status_code == 401
 
+def test_login_non_existent_user(client: TestClient):
+    response = client.post(
+        "/auth/login",
+        data={"username": "nobody", "password": "password123"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Incorrect username or password"
+
 def test_protected_route_without_token(client: TestClient):
     response = client.post(
         "/events",
