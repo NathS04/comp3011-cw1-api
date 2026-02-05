@@ -1,5 +1,8 @@
-
+from fastapi.testclient import TestClient
+from app.main import app
 from app.core.rate_limit import auth_limiter
+
+client = TestClient(app)
 
 def test_rate_limit_login():
     # Manually reset history to avoid contamination
