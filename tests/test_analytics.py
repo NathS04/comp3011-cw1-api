@@ -2,7 +2,7 @@
 from fastapi.testclient import TestClient
 from app.models import Event, DataSource, ImportRun, User, RSVP, Attendee
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def test_seasonality_endpoint(client: TestClient, db):
     # Seed events in different months
