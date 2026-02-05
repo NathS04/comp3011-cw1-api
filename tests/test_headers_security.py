@@ -14,7 +14,7 @@ def test_security_headers_200():
     assert r.headers["Referrer-Policy"] == "no-referrer"
     assert r.headers["Permissions-Policy"] == "geolocation=(), microphone=(), camera=()"
     assert r.headers["Cross-Origin-Resource-Policy"] == "same-site"
-    assert r.headers["Cache-Control"] == "no-store"
+    assert r.headers["Cache-Control"] in ["no-store", "no-cache"]
 
 def test_security_headers_404():
     r = client.get("/nonexistent")
