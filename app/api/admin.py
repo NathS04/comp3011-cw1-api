@@ -28,14 +28,14 @@ def run_import(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/imports", response_model=List[ImportRunOut]) # Need schema
-def list_imports(limit: int = 10, db: Session = Depends(get_db)):
+def list_imports(limit: int = 10, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     """
     List recent import runs.
     """
     return db.query(ImportRun).order_by(ImportRun.started_at.desc()).limit(limit).all()
 
 @router.get("/dataset/meta")
-def get_dataset_meta(db: Session = Depends(get_db)):
+def get_dataset_meta(db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
     """
     Get metadata about the current dataset integration.
     """

@@ -79,11 +79,8 @@ def import_dataset(source_type: str, source_url: str, db: Session = None):
                 run.sha256_hash = compute_sha256(raw_content)
                 
                 root = ET.fromstring(raw_content)
-                # Namespace handling strictly? The XML has xmlns but we can findall with wildcard or namespaced tag.
-                # Just iterate all 'Temporary_Event_Notice' children
                 items = root.findall('Temporary_Event_Notice')
                 if not items:
-                     # Try with namespace if needed, or check root tag
                      items = root.findall('.//Temporary_Event_Notice')
                 
                 logger.info(f"Docs found: {len(items)}")
@@ -107,7 +104,6 @@ def import_dataset(source_type: str, source_url: str, db: Session = None):
                         start_dt = parse_xml_date(start_d, start_t) or datetime.now(timezone.utc)
                         end_dt = parse_xml_date(end_d, end_t) or (start_dt + timedelta(hours=4))
 
-                        # Upsert logic
                         existing = db.query(Event).filter(
                              Event.source_id == source.id,
                              Event.source_record_id == record_id
@@ -119,7 +115,7 @@ def import_dataset(source_type: str, source_url: str, db: Session = None):
                             "location": (location or "Leeds")[:200],
                             "start_time": start_dt,
                             "end_time": end_dt,
-                            "capacity": 100, # Default for temp events
+                            "capacity": 100,
                             "source_id": source.id,
                             "source_record_id": record_id,
                             "is_seeded": False
@@ -140,9 +136,7 @@ def import_dataset(source_type: str, source_url: str, db: Session = None):
                 raise e
 
         elif source_type == "csv":
-            # Existing CSV logic
-            with open(source_url, 'r', encoding='utf-8') as f: # source_url is file path
-                 # Read local file for hash
+            with open(source_url, 'r', encoding='utf-8') as f:
                  f.seek(0)
                  run.sha256_hash = compute_sha256(f.read().encode('utf-8'))
                  f.seek(0)
@@ -150,19 +144,48 @@ def import_dataset(source_type: str, source_url: str, db: Session = None):
                  reader = csv.DictReader(f)
                  for row in reader:
                      rows_read += 1
-                     # ... (Existing logic adaptation)
-                     # For brevity, reusing the core logic implies I should extract upsert, but I'll keep it inline for now or copy logic.
-                     # Since this is a "Fix", I'll implementation minimal CSV support compatible with previous.
                      try:
                          record_id = row.get('EventId')
                          if not record_id: continue
                          
-                         existing = db.query(Event).filter(Event.source_id == source.id, Event.source_record_id == record_id).first()
-                         # ... (Date parsing same as before)
-                         # ...
-                         # Placeholder for CSV logic restoration if needed, but XML is priority.
-                         pass 
-                     except: pass
+                         title = row.get('EventTitle')
+                         desc = row.get('Description')
+                         location = row.get('Venue')
+                         
+                         # Parse ISO dates (from test data)
+                         try:
+                             start_dt = datetime.fromisoformat(row.get('StartDate')).replace(tzinfo=timezone.utc)
+                             end_dt = datetime.fromisoformat(row.get('EndDate')).replace(tzinfo=timezone.utc)
+                         except ValueError:
+                             continue
+
+                         existing = db.query(Event).filter(
+                             Event.source_id == source.id, 
+                             Event.source_record_id == record_id
+                         ).first()
+                         
+                         event_data = {
+                            "title": title[:200],
+                            "description": (desc or "")[:1000],
+                            "location": (location or "Leeds")[:200],
+                            "start_time": start_dt,
+                            "end_time": end_dt,
+                            "capacity": int(row.get('Capacity', 100)),
+                            "source_id": source.id,
+                            "source_record_id": record_id,
+                            "is_seeded": False
+                         }
+
+                         if existing:
+                            for k, v in event_data.items():
+                                setattr(existing, k, v)
+                            rows_updated += 1
+                         else:
+                            db.add(Event(**event_data))
+                            rows_inserted += 1
+
+                     except Exception as row_err:
+                         errors.append({"row": rows_read, "error": str(row_err)})
                      
         # 4. Finalize
         run.status = "success"
@@ -172,7 +195,7 @@ def import_dataset(source_type: str, source_url: str, db: Session = None):
         run.rows_updated = rows_updated
         run.duration_ms = int((time.time() - start_time) * 1000)
         if errors:
-            run.errors_json = {"errors": errors[:50]} # Cap errors
+            run.errors_json = {"errors": errors[:50]}
         
         db.commit()
         logger.info(f"Import Finished. Duration: {run.duration_ms}ms. Read: {rows_read}, Inserted: {rows_inserted}, Updated: {rows_updated}")
