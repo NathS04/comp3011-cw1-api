@@ -547,6 +547,19 @@ For validation errors (422):
 
 ---
 
+
+## Common Failure Modes
+
+| Scenario | HTTP Status | Response Example | Reason |
+|----------|-------------|------------------|--------|
+| **Missing Token** | `401 Unauthorized` | `{"detail": "Not authenticated"}` | Endpoint requires login but no header sent. |
+| **Invalid Token** | `401 Unauthorized` | `{"detail": "Could not validate credentials"}` | Token expired, tampered, or wrong secret. |
+| **Duplicate Email** | `400 Bad Request` | `{"detail": "Email already registered"}` | User/Attendee registration with existing email. |
+| **RSVP Conflict** | `409 Conflict` | `{"detail": "Attendee already has an RSVP for this event"}` | User tries to RSVP twice to same event. |
+| **Empty Dataset** | `200 OK` | `{"message": "No dataset imported yet"}` | Analytics/Admin endpoints called before import run. |
+
+---
+
 ## HTTP Status Codes Summary
 
 | Code | Meaning | When Used |
