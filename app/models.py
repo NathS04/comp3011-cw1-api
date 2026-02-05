@@ -43,7 +43,13 @@ class ImportRun(Base):
     rows_read: Mapped[int] = mapped_column(Integer, default=0)
     rows_inserted: Mapped[int] = mapped_column(Integer, default=0)
     rows_updated: Mapped[int] = mapped_column(Integer, default=0)
+    rows_updated: Mapped[int] = mapped_column(Integer, default=0)
     errors_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+    # 95+ Band Provenance Fields
+    sha256_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    parser_version: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     data_source: Mapped["DataSource"] = relationship("DataSource", back_populates="import_runs")
 

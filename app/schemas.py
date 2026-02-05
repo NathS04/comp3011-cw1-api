@@ -201,4 +201,21 @@ class RecommendationResponse(BaseModel):
     recommendations: List[RecommendationItem]
     user_id: int
 
+# Admin / Provenance Schemas
 
+class DataSourceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    url: Optional[str]
+    retrieved_at: datetime
+
+class ImportRunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    data_source_id: int
+    status: str
+    started_at: datetime
+    rows_inserted: int
+    sha256_hash: Optional[str]
+    duration_ms: Optional[int]
