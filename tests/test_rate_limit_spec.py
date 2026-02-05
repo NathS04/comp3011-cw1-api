@@ -1,20 +1,18 @@
 
-from fastapi.testclient import TestClient
-from app.main import app
-import time
-
-client = TestClient(app)
+from app.core.rate_limit import auth_limiter
 
 def test_rate_limit_login():
+    # Manually reset history to avoid contamination
+    auth_limiter.history.clear()
+    
     # Hit login 10 times (allowed)
-    for _ in range(10):
+    for i in range(10):
         r = client.post("/auth/login", data={"username": "test", "password": "pw"})
-        # We expect 200 or 401, mostly 401 if user invalid
-        assert r.status_code in [200, 401]
+        assert r.status_code in [200, 401], f"Request {i+1} failed with {r.status_code}"
 
     # 11th time -> 429
     r = client.post("/auth/login", data={"username": "test", "password": "pw"})
-    assert r.status_code == 429
+    assert r.status_code == 429, f"Expected 429, got {r.status_code}"
     
     data = r.json()
     assert data["detail"] == "Too Many Requests"

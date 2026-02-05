@@ -62,8 +62,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             ))
 
         # 4. ETag & Conditional GET (Outstanding Feature)
-        # Apply to successful GET requests
-        if request.method == "GET" and response.status_code == 200:
+        # Apply to successful GET requests on /events endpoints only
+        if request.method == "GET" and response.status_code == 200 and request.url.path.startswith("/events"):
             # We need to capture the body to hash it.
             # CAUTION: Consuming the iterator.
             response_body = b""
