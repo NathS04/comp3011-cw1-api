@@ -1,0 +1,11 @@
+EventId,EventTitle,Description,Venue,StartDate,EndDate,Capacity,Category
+LCC_001,Leeds Digital Festival,A celebration of digital culture and technology.,Leeds Dock,2026-04-20T09:00:00,2026-04-20T17:00:00,500,Tech
+LCC_002,Community Gardening,Weekly community gardening session.,Hyde Park,2026-05-01T10:00:00,2026-05-01T12:00:00,30,Community
+LCC_003,Music in the Park,Live jazz performance.,Roundhay Park,2026-06-15T14:00:00,2026-06-15T16:00:00,200,Music
+LCC_004,Council Meeting,Public town hall meeting.,Civic Hall,2026-03-10T18:00:00,2026-03-10T20:00:00,100,Government
+LCC_005,Art Walk,Guided tour of local galleries.,The Tetley,2026-05-22T11:00:00,2026-05-22T13:00:00,25,Art
+LCC_006,Coding for Kids,Introductory python workshop.,Central Library,2026-04-05T10:00:00,2026-04-05T12:00:00,20,Education
+LCC_007,Yoga in the Morning,Open air yoga session.,Kirkstall Abbey,2026-06-01T08:00:00,2026-06-01T09:00:00,50,Health
+LCC_008,Local History Talk,Lecture on victorian Leeds.,Leeds City Museum,2026-03-25T19:00:00,2026-03-25T20:30:00,80,History
+LCC_009,Food Market,Monthly local produce market.,Kirkgate Market,2026-04-12T09:00:00,2026-04-12T16:00:00,1000,Food
+LCC_010,Start-up Mixer,Networking for entrepreneurs.,Platform,2026-05-15T18:00:00,2026-05-15T21:00:00,150,Business
