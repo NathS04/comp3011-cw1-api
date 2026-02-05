@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
-[![Tests](https://img.shields.io/badge/Tests-31%20passing-brightgreen.svg)](#running-tests)
+[![Tests](https://img.shields.io/badge/Tests-39%20passing-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A production-grade REST API for event management with **real-world data integration** from Leeds City Council and **intelligent analytics**. Built for COMP3011 Web Services coursework at the University of Leeds.
@@ -22,21 +22,24 @@ A production-grade REST API for event management with **real-world data integrat
 
 ---
 
-## 🚀 Quickstart (Local)
+## 🚀 Reproducibility
 
+**Fresh Clone Quickstart:**
 ```bash
 # 1. Clone & setup
 git clone https://github.com/NathS04/comp3011-cw1-api.git && cd comp3011-cw1-api
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Configure & run
 export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-key-change-me"
 alembic upgrade head
+pytest -q                    # Expected: 39 passed
 uvicorn app.main:app --reload
 ```
 
-Open: http://127.0.0.1:8000/docs
+**Verification:** API documentation at `http://127.0.0.1:8000/docs`  
+**Full Instructions:** See [VERIFICATION_INSTRUCTIONS.md](VERIFICATION_INSTRUCTIONS.md)
 
 ---
 
@@ -62,7 +65,7 @@ The system integrates real event data from **Leeds City Council Temporary Event 
 # Fetch and import latest data directly from Leeds Open Data
 python scripts/import_dataset.py --type xml
 
-# Or trigger via API (requires auth)
+# Or trigger via API (requires admin JWT)
 curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -77,19 +80,14 @@ python scripts/import_dataset.py --type csv --url data/sample/dataset_sample.csv
 - Import runs logged with timestamp, duration, and row counts
 - Idempotent: re-running updates existing records, doesn't duplicate
 
-**Verify Import:**
-```bash
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/dataset/meta
-```
-
 ---
 
 ## 🧪 Demo Script
 
 ```bash
-# Health check
+# Health check (includes metadata)
 curl http://127.0.0.1:8000/health
-# → {"ok": true}
+# → {"status": "online", "database": "ok", "version": "1.0.0", "environment": "dev", "commit": "...", "timestamp": "..."}
 
 # Register user
 curl -X POST http://127.0.0.1:8000/auth/register \
@@ -119,7 +117,7 @@ curl http://127.0.0.1:8000/analytics/events/trending
 pytest -v
 ```
 
-**Result:** 31 tests passing (auth, events, attendees, RSVPs, analytics, admin, provenance)
+**Result:** 39 tests passing (auth, events, attendees, RSVPs, analytics, admin, provenance, RBAC, middleware, ETag)
 
 ---
 
@@ -128,7 +126,7 @@ pytest -v
 ### Core CRUD
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/health` | Health check | No |
+| GET | `/health` | Health check with metadata | No |
 | POST | `/auth/register` | Register user | No |
 | POST | `/auth/login` | Get JWT token | No |
 | GET/POST | `/events` | List/Create events | POST: Yes |
@@ -147,9 +145,11 @@ pytest -v
 ### Admin (Dataset Management)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/admin/imports/run` | Trigger dataset import | Yes |
-| GET | `/admin/imports` | List recent import runs | Yes |
-| GET | `/admin/dataset/meta` | Current dataset metadata | Yes |
+| POST | `/admin/imports/run` | Trigger dataset import | Admin |
+| GET | `/admin/imports` | List recent import runs | Admin |
+| GET | `/admin/dataset/meta` | Current dataset metadata | Admin |
+
+> **Note:** Admin endpoints return `403 Forbidden` for non-admin users.
 
 ---
 
@@ -167,11 +167,26 @@ comp3011-cw1-api/
 │   └── schemas.py           # Pydantic schemas
 ├── scripts/
 │   ├── import_dataset.py    # XML/CSV import with provenance
+│   ├── make_admin.py        # Promote user to admin
 │   └── smoke_test.sh        # Deployment verification
-├── tests/                   # 31 test cases
+├── tests/                   # 39 test cases
 ├── docs/                    # PDF/PPTX deliverables
 └── alembic/                 # Database migrations
 ```
+
+---
+
+## 🔒 Security Hardening
+
+| Feature | Implementation |
+|---------|---------------|
+| **RBAC** | `is_admin` flag on User model; `/admin/*` routes require admin (403 otherwise) |
+| **Rate Limiting** | In-memory: 120 req/min global, 10 req/min on `/auth/login`; 429 includes `request_id` |
+| **Request Tracing** | `X-Request-ID` header on **every** response (including 429/500); included in error JSON |
+| **Security Headers** | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Cache-Control: no-store` |
+| **ETag Caching** | GET responses include ETag; `If-None-Match` returns `304 Not Modified` |
+| **CORS** | Configurable via `ALLOWED_ORIGINS` env; defaults to permissive in dev, strict in prod |
+| **Error Sanitization** | 500 errors show generic message + request_id; no stack traces leaked |
 
 ---
 
@@ -186,6 +201,17 @@ comp3011-cw1-api/
 | Auth | JWT (python-jose) |
 | Testing | pytest |
 | Deployment | Render.com |
+
+---
+
+## ✅ Verification
+
+For markers: see [VERIFICATION_INSTRUCTIONS.md](VERIFICATION_INSTRUCTIONS.md) for step-by-step verification including:
+- Clean install test
+- Test suite (`pytest -q` → 39 passed)
+- Admin RBAC verification (403 → promote → success)
+- ETag/304 verification
+- Rate limiting check (429)
 
 ---
 
