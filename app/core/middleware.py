@@ -26,7 +26,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             resp.headers["X-Request-ID"] = request_id
             resp.headers["X-Content-Type-Options"] = "nosniff"
             resp.headers["X-Frame-Options"] = "DENY"
-            
+            # Extra Security Headers
+            resp.headers["Referrer-Policy"] = "no-referrer"
+            resp.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+            resp.headers["Cross-Origin-Resource-Policy"] = "same-site"
+
             # Default to no-store for everything (Secure by default)
             # Only if not already set (e.g. by ETag logic)
             if "Cache-Control" not in resp.headers:
