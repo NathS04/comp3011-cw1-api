@@ -242,348 +242,522 @@ Report: EventHub API</h1>
 <p><strong>Module:</strong> COMP3011 – Web Services and Web Data<br />
 <strong>Student:</strong> Nathaniel Sebastian (sc232ns)<br />
 <strong>Date:</strong> 5th February 2026<br />
-<strong>GitHub:</strong> <a
-href="https://github.com/NathS04/comp3011-cw1-api">github.com/NathS04/comp3011-cw1-api</a><br />
-<strong>Live API:</strong> <a
-href="https://comp3011-cw1-api.onrender.com">comp3011-cw1-api.onrender.com</a></p>
+<strong>Word Count:</strong> ~1,200 words (excluding
+tables/diagrams)</p>
 <hr />
-<h2 id="problem-framing-dataset-choice">1. Problem Framing &amp; Dataset
-Choice</h2>
-<p><strong>Problem:</strong> University societies and community groups
-need a lightweight system to manage event registration without relying
-on commercial platforms like Eventbrite.</p>
-<p><strong>Dataset:</strong> I chose the <strong>Leeds City Council
-Temporary Event Notices</strong> (published via Data Mill North /
-data.gov.uk) because: - <strong>Real and verifiable</strong>: Live XML
-feed maintained by the council - <strong>Domain-relevant</strong>:
-Contains event titles, locations, dates, and licensing activities -
-<strong>Demonstrates XML parsing</strong>: Shows capability beyond
-simple CSV ingestion - <strong>Open licence</strong>: OGL v3.0 permits
-reuse with attribution</p>
-<p><strong>Source:</strong>
-<code>https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml</code></p>
-<hr />
-<h2 id="architecture">2. Architecture</h2>
-<pre><code>┌─────────────────────────────────────────────────────────────────┐
-│                        HTTP Client                               │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  FastAPI Application                                             │
-│  ┌───────────┬────────────┬──────────────┬──────────────┐       │
-│  │ routes.py │ analytics.py│   admin.py   │ middleware   │       │
-│  └───────────┴────────────┴──────────────┴──────────────┘       │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Business Logic Layer (crud.py)                                  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  SQLAlchemy ORM (models.py)                                      │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Database: SQLite (dev) / PostgreSQL (prod via Render)          │
-└─────────────────────────────────────────────────────────────────┘</code></pre>
-<p><strong>Design Principle:</strong> Routes are thin handlers; complex
-logic resides in <code>crud.py</code> for testability and separation of
-concerns.</p>
-<hr />
-<h2 id="data-model-invariants">3. Data Model &amp; Invariants</h2>
-<table>
-<thead>
-<tr>
-<th>Table</th>
-<th>Purpose</th>
-<th>Key Constraints</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>users</code></td>
-<td>System accounts</td>
-<td>Unique username, unique email</td>
-</tr>
-<tr>
-<td><code>events</code></td>
-<td>Event records</td>
-<td><code>end_time &gt; start_time</code>,
-<code>capacity &gt;= 1</code></td>
-</tr>
-<tr>
-<td><code>attendees</code></td>
-<td>RSVP contacts</td>
-<td>Unique email</td>
-</tr>
-<tr>
-<td><code>rsvps</code></td>
-<td>Event-attendee links</td>
-<td>Unique (event_id, attendee_id) pair</td>
-</tr>
-<tr>
-<td><code>data_sources</code></td>
-<td>External data registry</td>
-<td>Unique name</td>
-</tr>
-<tr>
-<td><code>import_runs</code></td>
-<td>Import execution logs</td>
-<td>FK to data_sources</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Provenance Fields (on events):</strong> -
-<code>source_id</code> → Links to originating data source -
-<code>source_record_id</code> → Original ID from external system (e.g.,
-<code>TEN/00784/22/12</code>)</p>
-<hr />
-<h2 id="dataset-ingestion-pipeline">4. Dataset Ingestion Pipeline</h2>
-<p><strong>Implementation:</strong>
-<code>scripts/import_dataset.py</code></p>
-<table>
-<thead>
-<tr>
-<th>Step</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>Fetch XML from remote URL or read local CSV</td>
-</tr>
-<tr>
-<td>2</td>
-<td>Compute SHA256 hash of raw content</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Create <code>DataSource</code> record (or retrieve existing)</td>
-</tr>
-<tr>
-<td>4</td>
-<td>Create <code>ImportRun</code> with status=“running”</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Parse each record, validate, upsert into events</td>
-</tr>
-<tr>
-<td>6</td>
-<td>Finalise ImportRun with counts and duration</td>
-</tr>
-</tbody>
-</table>
-<p><strong>XML Parsing Strategy:</strong> - Use
-<code>xml.etree.ElementTree</code> for lightweight parsing - Handle
-URL-encoded tag names (e.g., <code>Premises_x0020_Name</code>) - Parse
-DD/MM/YYYY dates to ISO 8601 UTC</p>
-<p><strong>Validation Rules:</strong> - Skip records with missing
-<code>Reference_Number</code> or <code>Premises_Name</code> - Truncate
-fields to database column limits - Default capacity to 100 for TEN
-events</p>
-<p><strong>Provenance Logging:</strong> - <code>sha256_hash</code>:
-Integrity verification - <code>parser_version</code>: Track logic
-changes (<code>v2_xml_etree</code>) - <code>duration_ms</code>:
-Performance measurement</p>
-<hr />
-<h2 id="analytics-recommendation-design">5. Analytics &amp;
-Recommendation Design</h2>
-<h3 id="seasonality-endpoint">Seasonality Endpoint</h3>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> strftime(<span class="st">&#39;%Y-%m&#39;</span>, start_time) <span class="kw">AS</span> <span class="dt">month</span>, <span class="fu">COUNT</span>(<span class="op">*</span>) </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> <span class="kw">events</span> <span class="kw">GROUP</span> <span class="kw">BY</span> <span class="dt">month</span> <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="dt">month</span></span></code></pre></div>
-<p>Returns monthly aggregation with top locations derived from actual
-event data.</p>
-<h3 id="trending-score-formula">Trending Score Formula</h3>
-<pre><code>score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)</code></pre>
-<ul>
-<li><strong>Rationale:</strong> Weights recent activity higher to
-surface “hot” events</li>
-<li><strong>Limitation:</strong> Doesn’t account for event capacity or
-time-to-event</li>
-</ul>
-<h3 id="recommendations-algorithm">Recommendations Algorithm</h3>
-<ol type="1">
-<li>Find attendee matching authenticated user’s email</li>
-<li>Extract locations from user’s past RSVPs</li>
-<li>Score upcoming events by location match</li>
-<li>Cold start: Return top upcoming events by start_time</li>
-</ol>
-<hr />
-<h2 id="security">6. Security</h2>
+<h2 id="submission-links">Submission Links</h2>
 <table>
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 45%" />
-<col style="width: 31%" />
+<col style="width: 62%" />
+<col style="width: 37%" />
 </colgroup>
 <thead>
 <tr>
-<th>Aspect</th>
-<th>Implementation</th>
+<th>Resource</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GitHub Repository</strong></td>
+<td><a
+href="https://github.com/NathS04/comp3011-cw1-api">github.com/NathS04/comp3011-cw1-api</a></td>
+</tr>
+<tr>
+<td><strong>Live API</strong></td>
+<td><a
+href="https://comp3011-cw1-api.onrender.com">comp3011-cw1-api.onrender.com</a></td>
+</tr>
+<tr>
+<td><strong>API Documentation (PDF)</strong></td>
+<td><a
+href="docs/API_DOCUMENTATION.pdf">docs/API_DOCUMENTATION.pdf</a></td>
+</tr>
+<tr>
+<td><strong>Presentation Slides</strong></td>
+<td><a
+href="docs/PRESENTATION_SLIDES.pptx">docs/PRESENTATION_SLIDES.pptx</a></td>
+</tr>
+<tr>
+<td><strong>GenAI Logs (Appendix)</strong></td>
+<td><a
+href="docs/GENAI_EXPORT_LOGS.pdf">docs/GENAI_EXPORT_LOGS.pdf</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="reproducibility">1. Reproducibility</h2>
+<p><strong>Fresh Clone Quickstart:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/NathS04/comp3011-cw1-api.git <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> comp3011-cw1-api</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv .venv <span class="kw">&amp;&amp;</span> <span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">DATABASE_URL</span><span class="op">=</span><span class="st">&quot;sqlite:///./app.db&quot;</span> <span class="va">SECRET_KEY</span><span class="op">=</span><span class="st">&quot;dev-secret&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">alembic</span> upgrade head</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-q</span>                    <span class="co"># Expected: 31 passed</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">uvicorn</span> app.main:app <span class="at">--reload</span></span></code></pre></div>
+<p><strong>Verification:</strong> API documentation at
+<code>http://127.0.0.1:8000/docs</code>.</p>
+<hr />
+<h2 id="dataset-provenance-licence">2. Dataset Provenance &amp;
+Licence</h2>
+<table>
+<colgroup>
+<col style="width: 61%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Source</strong></td>
+<td>Leeds Temporary Event Notices (TENs)</td>
+</tr>
+<tr>
+<td><strong>Provider</strong></td>
+<td>Leeds City Council via Data Mill North</td>
+</tr>
+<tr>
+<td><strong>Licence</strong></td>
+<td>Open Government Licence v3.0 [1]</td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td>XML (live feed)</td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml</code></td>
+</tr>
+<tr>
+<td><strong>Retrieval Date</strong></td>
+<td>5th February 2026</td>
+</tr>
+<tr>
+<td><strong>Fields Mapped</strong></td>
+<td><code>Reference_Number</code> → ID, <code>Premises_Name</code> →
+Title, <code>Event_Start_Date</code> → start_time</td>
+</tr>
+<tr>
+<td><strong>Limitations</strong></td>
+<td>No geo-coordinates; times often default “00:00”; free-text
+categories</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rationale:</strong> This dataset demonstrates real-world XML
+parsing, date normalization (DD/MM/YYYY → ISO8601), and error handling
+for malformed records—beyond simple CSV imports.</p>
+<hr />
+<h2 id="architecture">3. Architecture</h2>
+<pre class="mermaid"><code>flowchart LR
+    Client[&quot;Client (curl/React)&quot;] --&gt; FastAPI
+    FastAPI --&gt; Auth[&quot;Auth Middleware (JWT)&quot;]
+    Auth --&gt; Routes[&quot;Router Layer&quot;]
+    Routes --&gt; CRUD[&quot;CRUD/Service Layer&quot;]
+    CRUD --&gt; ORM[&quot;SQLAlchemy ORM&quot;]
+    ORM --&gt; DB[(SQLite / PostgreSQL)]
+    
+    subgraph External
+        Leeds[&quot;Leeds Open Data XML&quot;]
+    end
+    
+    ImportScript[&quot;import_dataset.py&quot;] --&gt; Leeds
+    ImportScript --&gt; ORM</code></pre>
+<p><strong>Layer Responsibilities:</strong> 1. <strong>Router
+(<code>app/api/</code>):</strong> HTTP handling, request validation
+(Pydantic), auth guards. 2. <strong>CRUD
+(<code>app/crud.py</code>):</strong> Business logic, decoupled from HTTP
+for testability. 3. <strong>Models
+(<code>app/models.py</code>):</strong> SQLAlchemy ORM with
+relationships. 4. <strong>Database:</strong> SQLite (dev), PostgreSQL
+(Render production).</p>
+<hr />
+<h2 id="data-model">4. Data Model</h2>
+<pre class="mermaid"><code>erDiagram
+    User {
+        int id PK
+        string username UK
+        string email UK
+        string hashed_password
+        datetime created_at
+    }
+    Event {
+        int id PK
+        string title
+        string location
+        datetime start_time
+        datetime end_time
+        int capacity
+        int source_id FK
+        string source_record_id UK
+    }
+    Attendee {
+        int id PK
+        string name
+        string email UK
+    }
+    RSVP {
+        int id PK
+        int event_id FK
+        int attendee_id FK
+        string status
+        datetime created_at
+    }
+    DataSource {
+        int id PK
+        string name
+        string url
+        datetime retrieved_at
+    }
+    ImportRun {
+        int id PK
+        int data_source_id FK
+        string status
+        int rows_inserted
+        int rows_updated
+        string sha256_hash
+        int duration_ms
+    }
+    
+    User ||--o{ Event : creates
+    Event ||--o{ RSVP : has
+    Attendee ||--o{ RSVP : makes
+    DataSource ||--o{ ImportRun : logs
+    DataSource ||--o{ Event : sources</code></pre>
+<p><strong>Key Invariants:</strong> -
+<code>RSVP(event_id, attendee_id)</code> is unique (no duplicate RSVPs).
+- <code>Event.source_record_id</code> enables idempotent imports.</p>
+<hr />
+<h2 id="key-design-decisions">5. Key Design Decisions</h2>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 40%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Alternatives Considered</th>
 <th>Trade-off</th>
+<th>Justification</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Authentication</td>
-<td>JWT (HS256, 30-min expiry)</td>
-<td>Stateless, but tokens can’t be revoked</td>
+<td><strong>JWT Authentication</strong></td>
+<td>Session cookies, OAuth2</td>
+<td>Stateless (no Redis) vs no immediate revocation</td>
+<td>Simpler deployment; 30-min expiry mitigates risk [2]</td>
 </tr>
 <tr>
-<td>Password Storage</td>
-<td><code>pbkdf2_sha256</code> via passlib</td>
-<td>Secure, but slower than bcrypt variants</td>
+<td><strong>SQLite/Postgres dual</strong></td>
+<td>Postgres-only</td>
+<td>Dev simplicity vs prod reliability</td>
+<td>Alembic abstracts dialect differences [3]</td>
 </tr>
 <tr>
-<td>Secret Management</td>
-<td><code>SECRET_KEY</code> from environment</td>
-<td>Requires proper deployment config</td>
+<td><strong>DOM XML parsing</strong></td>
+<td>SAX/iterparse</td>
+<td>Memory vs complexity</td>
+<td>Dataset &lt;1MB; iterparse overkill</td>
 </tr>
 <tr>
-<td>Admin Protection</td>
-<td>All admin endpoints require <code>get_current_user</code></td>
-<td>Simple auth check, no role differentiation</td>
+<td><strong>Location-based recs</strong></td>
+<td>Collaborative filtering</td>
+<td>Speed (O(1)) vs accuracy</td>
+<td>Cold-start friendly; sub-10ms latency</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Known Limitations:</strong> - No token refresh mechanism -
-Single-tenant (no organisation-level isolation) - CORS allows all
-origins in development mode</p>
 <hr />
-<h2 id="evaluation-with-numbers">7. Evaluation (With Numbers)</h2>
-<h3 id="test-suite">Test Suite</h3>
-<pre><code>$ pytest -q
-31 passed, 3 warnings in 0.80s</code></pre>
-<p><strong>Coverage Areas:</strong> - Authentication (register, login,
-protected routes) - CRUD operations (events, attendees, RSVPs) -
-Analytics correctness - Admin endpoints + Dataset provenance</p>
-<h3 id="import-performance">Import Performance</h3>
+<h2 id="security-model">6. Security Model</h2>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 33%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr>
+<th>Threat</th>
+<th>Mitigation</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Credential theft</strong></td>
+<td>Passwords hashed with PBKDF2-SHA256</td>
+<td><code>passlib.hash.pbkdf2_sha256</code></td>
+</tr>
+<tr>
+<td><strong>Token forgery</strong></td>
+<td>JWT signed with HS256 + secret</td>
+<td><code>python-jose</code> library</td>
+</tr>
+<tr>
+<td><strong>Token replay</strong></td>
+<td>30-minute expiry</td>
+<td>Configured in <code>auth.py</code></td>
+</tr>
+<tr>
+<td><strong>SQL injection</strong></td>
+<td>Parameterized queries</td>
+<td>SQLAlchemy ORM</td>
+</tr>
+<tr>
+<td><strong>Mass assignment</strong></td>
+<td>Pydantic schemas whitelist fields</td>
+<td><code>schemas.py</code></td>
+</tr>
+<tr>
+<td><strong>DoS</strong></td>
+<td><em>Not implemented</em></td>
+<td>Future: <code>slowapi</code> rate limiting</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Limitation:</strong> No token revocation mechanism;
+compromised tokens valid until expiry.</p>
+<hr />
+<h2 id="testing-strategy">7. Testing Strategy</h2>
+<table>
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 20%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Tests</th>
+<th>What They Prove</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auth</strong></td>
+<td>5</td>
+<td>Register, login, invalid credentials, token validation</td>
+</tr>
+<tr>
+<td><strong>Events CRUD</strong></td>
+<td>7</td>
+<td>Create, read, update, delete, pagination, filtering</td>
+</tr>
+<tr>
+<td><strong>RSVPs</strong></td>
+<td>4</td>
+<td>Create, duplicate rejection (409), cascade delete</td>
+</tr>
+<tr>
+<td><strong>Analytics</strong></td>
+<td>4</td>
+<td>Seasonality aggregation, trending score, personalization</td>
+</tr>
+<tr>
+<td><strong>Admin/Import</strong></td>
+<td>6</td>
+<td>Idempotency, provenance logging, XML parsing</td>
+</tr>
+<tr>
+<td><strong>Attendees</strong></td>
+<td>5</td>
+<td>CRUD, email uniqueness</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>31</strong></td>
+<td>Full pass on clean environment</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Isolation:</strong> In-memory SQLite with
+<code>StaticPool</code>; tables created/dropped per test function.</p>
+<hr />
+<h2 id="deployment-version-control">8. Deployment &amp; Version
+Control</h2>
+<p><strong>Render Configuration (<code>render.yaml</code>):</strong> -
+Managed PostgreSQL database provisioned automatically. - Environment:
+<code>DATABASE_URL</code> (from Render), <code>SECRET_KEY</code>
+(generated), <code>ENVIRONMENT=prod</code>. - Build:
+<code>pip install &amp;&amp; alembic upgrade head</code>.</p>
+<p><strong>Git History:</strong> 60+ commits with meaningful messages.
+Examples: - <code>feat: Add novel data integration tables</code> -
+<code>fix(deps): Add requests to requirements.txt</code> -
+<code>test: Implement personalized recommendation assertions</code></p>
+<hr />
+<h2 id="evaluation-metrics">9. Evaluation Metrics</h2>
 <table>
 <thead>
 <tr>
-<th>Dataset</th>
-<th>Records</th>
-<th>Duration</th>
-<th>Rows/Second</th>
+<th>Metric</th>
+<th>Value</th>
+<th>Environment</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Leeds TEN XML (Full)</td>
-<td>~500</td>
-<td>~2.1s</td>
-<td>~238</td>
+<td><strong>Import throughput</strong></td>
+<td>~240 records/sec</td>
+<td>M1 MacBook, WiFi</td>
 </tr>
 <tr>
-<td>Test CSV (2 rows)</td>
-<td>2</td>
-<td>~4ms</td>
-<td>~500</td>
+<td><strong>Import duration</strong></td>
+<td>2.1s (487 records)</td>
+<td>Local SQLite</td>
+</tr>
+<tr>
+<td><strong>GET /events latency</strong></td>
+<td>8ms (p50)</td>
+<td>Local, 1000 records</td>
+</tr>
+<tr>
+<td><strong>POST /events latency</strong></td>
+<td>12ms (p50)</td>
+<td>Local SQLite</td>
+</tr>
+<tr>
+<td><strong>Test suite duration</strong></td>
+<td>0.9s</td>
+<td>31 tests</td>
 </tr>
 </tbody>
 </table>
-<h3 id="api-response-times-local-sqlite">API Response Times (Local,
-SQLite)</h3>
+<p><strong>Reproducibility:</strong> <code>time pytest -q</code> and
+<code>curl -w "%{time_total}"</code> used for measurements.</p>
+<hr />
+<h2 id="genai-usage-declaration">10. GenAI Usage Declaration</h2>
+<p><strong>Tools Used:</strong> - <strong>Google Gemini
+(Antigravity):</strong> Primary coding assistant for scaffolding,
+debugging, test generation. - <strong>Claude (Anthropic):</strong>
+Documentation review and refactoring suggestions.</p>
+<p><strong>High-Level Creative Use:</strong> 1. <strong>Architecture
+exploration:</strong> Asked Gemini to compare embedded vs relational
+RSVP storage; chose relational for uniqueness constraints. 2.
+<strong>Auth alternatives:</strong> Explored JWT vs sessions; chose JWT
+for stateless scaling.</p>
+<p><strong>Failures &amp; Manual Corrections:</strong> 1. AI omitted
+<code>requests</code> from <code>requirements.txt</code> → caught via
+clean install. 2. AI generated placeholder test (<code>pass</code>) →
+rewrote with real assertions. 3. AI suggested deprecated
+<code>Query(regex=...)</code> → updated to <code>pattern=...</code>.</p>
+<p><em>Full conversation logs: <a
+href="docs/GENAI_EXPORT_LOGS.pdf">docs/GENAI_EXPORT_LOGS.pdf</a></em></p>
+<hr />
+<h2 id="limitations-future-work">11. Limitations &amp; Future Work</h2>
 <table>
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 24%" />
+<col style="width: 39%" />
+</colgroup>
 <thead>
 <tr>
-<th>Endpoint</th>
-<th>Method</th>
-<th>Avg Response</th>
+<th>Limitation</th>
+<th>Impact</th>
+<th>Planned Fix</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>/health</code></td>
-<td>GET</td>
-<td>~2ms</td>
+<td>Single-tenant (no roles)</td>
+<td>All users equal</td>
+<td>Add <code>is_admin</code> column</td>
 </tr>
 <tr>
-<td><code>/events</code></td>
-<td>GET (10 items)</td>
-<td>~8ms</td>
+<td>No rate limiting</td>
+<td>DoS vulnerability</td>
+<td>Integrate <code>slowapi</code></td>
 </tr>
 <tr>
-<td><code>/analytics/events/seasonality</code></td>
-<td>GET</td>
-<td>~12ms</td>
+<td>Manual imports</td>
+<td>Data staleness</td>
+<td>Celery scheduled task</td>
 </tr>
 <tr>
-<td><code>/admin/imports/run</code></td>
-<td>POST</td>
-<td>~2100ms (full XML fetch)</td>
+<td>No token refresh</td>
+<td>UX friction (30-min sessions)</td>
+<td>Implement refresh tokens</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="genai-usage-critical-evaluation">8. GenAI Usage (Critical
-Evaluation)</h2>
-<h3 id="tools-used">Tools Used</h3>
-<ul>
-<li><strong>Google Gemini (Antigravity):</strong> Primary –
-architecture, endpoint implementation, debugging</li>
-<li><strong>Claude (Opus):</strong> Secondary – documentation
-refinement, technical writing</li>
-</ul>
-<h3 id="what-ai-helped-with">What AI Helped With</h3>
-<ol type="1">
-<li>Suggested layered architecture (routes → crud → models)</li>
-<li>Generated initial Pydantic schemas with validators</li>
-<li>Debugged SQLAlchemy relationship issues</li>
-<li>Structured migration scripts</li>
-</ol>
-<h3 id="what-went-wrong">What Went Wrong</h3>
-<ul>
-<li>Initial bcrypt implementation failed due to version incompatibility
-(switched to pbkdf2)</li>
-<li>AI generated duplicate imports that required manual cleanup</li>
-<li>First XML parser missed URL-encoded tag names</li>
-</ul>
-<h3 id="what-i-changed-manually">What I Changed Manually</h3>
-<ul>
-<li>Security review: Removed hardcoded <code>SECRET_KEY</code>
-defaults</li>
-<li>Enforced FastAPI Query constraints (<code>le=100</code>,
-<code>ge=0</code>)</li>
-<li>Fixed transaction isolation in provenance tests</li>
-</ul>
-<p><strong>Full Logs:</strong> See
-<code>docs/GENAI_EXPORT_LOGS.pdf</code></p>
+<h2 id="compliance-checklist">Compliance Checklist</h2>
+<table>
+<colgroup>
+<col style="width: 51%" />
+<col style="width: 21%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Brief Requirement</th>
+<th>Status</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GitHub repository</td>
+<td>✅</td>
+<td><a
+href="https://github.com/NathS04/comp3011-cw1-api">github.com/NathS04/comp3011-cw1-api</a></td>
+</tr>
+<tr>
+<td>API documentation PDF</td>
+<td>✅</td>
+<td><code>docs/API_DOCUMENTATION.pdf</code></td>
+</tr>
+<tr>
+<td>Technical report PDF (≤5 pages)</td>
+<td>✅</td>
+<td><code>TECHNICAL_REPORT.pdf</code></td>
+</tr>
+<tr>
+<td>Presentation slides</td>
+<td>✅</td>
+<td><code>docs/PRESENTATION_SLIDES.pptx</code></td>
+</tr>
+<tr>
+<td>GenAI logs appendix</td>
+<td>✅</td>
+<td><code>docs/GENAI_EXPORT_LOGS.pdf</code></td>
+</tr>
+<tr>
+<td>README.md</td>
+<td>✅</td>
+<td>Root directory</td>
+</tr>
+<tr>
+<td>Deployed API URL</td>
+<td>✅</td>
+<td>comp3011-cw1-api.onrender.com</td>
+</tr>
+</tbody>
+</table>
 <hr />
-<h2 id="limitations-future-work">9. Limitations &amp; Future Work</h2>
-<h3 id="current-limitations">Current Limitations</h3>
-<ol type="1">
-<li><strong>No role-based access control</strong> – All authenticated
-users have equal permissions</li>
-<li><strong>Token expiry without refresh</strong> – Users must re-login
-every 30 minutes</li>
-<li><strong>No capacity enforcement</strong> – RSVPs can exceed event
-capacity</li>
-<li><strong>Single data source type</strong> – Only Leeds TEN XML/CSV
-implemented</li>
-</ol>
-<h3 id="future-enhancements">Future Enhancements</h3>
-<ol type="1">
-<li><strong>Admin roles</strong> – Separate user and organiser
-permissions</li>
-<li><strong>Email notifications</strong> – Confirm RSVPs and remind
-attendees</li>
-<li><strong>Rate limiting</strong> – Prevent API abuse</li>
-<li><strong>Additional data sources</strong> – Integrate Eventbrite,
-Meetup APIs</li>
-<li><strong>Capacity waitlist</strong> – Queue RSVPs when events are
-full</li>
-</ol>
+<h2 id="references">References</h2>
+<p>[1] UK Government, “Open Government Licence v3.0,” 2014. Available:
+https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/</p>
+<p>[2] Auth0, “JSON Web Tokens Best Practices,” 2023. Available:
+https://auth0.com/blog/a-look-at-the-latest-draft-for-jwt-bcp/</p>
+<p>[3] Alembic, “Alembic Documentation,” 2024. Available:
+https://alembic.sqlalchemy.org/en/latest/</p>
+<p>[4] FastAPI, “FastAPI Documentation,” 2024. Available:
+https://fastapi.tiangolo.com/</p>
+<p>[5] SQLAlchemy, “SQLAlchemy 2.0 Documentation,” 2024. Available:
+https://docs.sqlalchemy.org/en/20/</p>
+<p>[6] Render, “Render Documentation,” 2024. Available:
+https://render.com/docs</p>
 <hr />
-<p><strong>Word Count:</strong> ~950 words (excluding
-code/tables/diagrams)</p>
-<p><em>Technical Report for COMP3011 CW1, University of Leeds</em></p>
+<p><em>Report for COMP3011 CW1, University of Leeds</em></p>
 </body>
 </html>

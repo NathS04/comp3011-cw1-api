@@ -33,6 +33,39 @@
 
 ---
 
+## Security Model
+
+### Authentication
+All endpoints that modify data require a valid JWT token in the `Authorization` header.
+
+| Mechanism | Implementation |
+|-----------|----------------|
+| **Token Type** | JWT (JSON Web Token) |
+| **Algorithm** | HS256 |
+| **Expiry** | 30 minutes |
+| **Header Format** | `Authorization: Bearer <token>` |
+
+### Password Security
+- Hashed with PBKDF2-SHA256 (via `passlib`)
+- Plaintext passwords never stored
+
+### Authorization Levels
+| Role | Capabilities |
+|------|--------------|
+| **Anonymous** | Read events, attendees, analytics |
+| **Authenticated User** | Create/update/delete events, RSVPs, attendees |
+| **Admin** | Dataset import, view import logs |
+
+> **Note:** Current implementation does not enforce role separation; all authenticated users have full access. Admin role-based access is planned for future work.
+
+### Error Response Format
+All errors return consistent JSON:
+```json
+{"detail": "Human-readable error message"}
+```
+
+---
+
 ## Authentication
 
 Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token. Read operations (GET) are generally public.
@@ -573,6 +606,73 @@ For validation errors (422):
 | `409` | Conflict | Duplicate entry |
 | `422` | Unprocessable Entity | Validation failed |
 | `500` | Internal Server Error | Unexpected error |
+
+---
+
+## End-to-End Example Flow
+
+This demonstrates a complete user journey: registration → login → event creation → RSVP → analytics.
+
+### Step 1: Register
+```bash
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","email":"alice@example.com","password":"SecurePass123"}'
+```
+**Response:** `201 Created` with user object.
+
+### Step 2: Login
+```bash
+curl -X POST http://127.0.0.1:8000/auth/login \
+  -d "username=alice&password=SecurePass123"
+```
+**Response:** `{"access_token": "eyJ...", "token_type": "bearer"}`
+
+### Step 3: Create Event
+```bash
+TOKEN="eyJ..."  # from Step 2
+curl -X POST http://127.0.0.1:8000/events \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"AI Workshop","location":"Leeds Digital Hub","start_time":"2026-03-15T14:00:00Z","end_time":"2026-03-15T17:00:00Z","capacity":30}'
+```
+**Response:** `201 Created` with `{"id": 1, ...}`.
+
+### Step 4: Create Attendee
+```bash
+curl -X POST http://127.0.0.1:8000/attendees \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice Smith","email":"alice@example.com"}'
+```
+**Response:** `201 Created` with `{"id": 1, ...}`.
+
+### Step 5: RSVP to Event
+```bash
+curl -X POST http://127.0.0.1:8000/events/1/rsvps \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"attendee_id": 1, "status": "going"}'
+```
+**Response:** `201 Created`.
+
+### Step 6: Check Event Stats
+```bash
+curl http://127.0.0.1:8000/events/1/stats
+```
+**Response:** `{"event_id": 1, "going": 1, "maybe": 0, "remaining_capacity": 29}`.
+
+### Step 7: Get Trending Events
+```bash
+curl http://127.0.0.1:8000/analytics/events/trending
+```
+**Response:** List of events ranked by trending score.
+
+### Step 8: Get Personalized Recommendations
+```bash
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/events/recommendations
+```
+**Response:** Events at locations user has previously attended.
 
 ---
 
