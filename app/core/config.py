@@ -22,6 +22,6 @@ class Settings:
     # Advanced Security & Deployment
     RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "1") == "1"
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "")
-    GIT_SHA = os.getenv("GIT_SHA", "unknown")
+    GIT_SHA = os.getenv("RENDER_GIT_COMMIT") or os.getenv("GIT_SHA", "unknown")
 
 settings = Settings()
