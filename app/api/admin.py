@@ -14,28 +14,25 @@ def run_import(
     source_type: str = Query("xml", pattern="^(xml|csv)$"),
     source_url: str = Query("https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml"),
     db: Session = Depends(get_db), 
-    current_user: User = Depends(auth.get_current_user) # Admin only in real life
+    current_user: User = Depends(auth.get_current_admin_user)
 ):
     """
     Trigger a dataset import (Admin only).
     """
     # Verify user is admin if role exists, else just auth
-    try:
-        # Running sync for simplicity as per brief requirements
-        import_dataset(source_type, source_url, db)
-        return {"message": "Import finished successfully", "source": source_url}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Running sync for simplicity as per brief requirements
+    import_dataset(source_type, source_url, db)
+    return {"message": "Import finished successfully", "source": source_url}
 
 @router.get("/imports", response_model=List[ImportRunOut]) # Need schema
-def list_imports(limit: int = 10, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
+def list_imports(limit: int = 10, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_admin_user)):
     """
     List recent import runs.
     """
     return db.query(ImportRun).order_by(ImportRun.started_at.desc()).limit(limit).all()
 
 @router.get("/dataset/meta")
-def get_dataset_meta(db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
+def get_dataset_meta(db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_admin_user)):
     """
     Get metadata about the current dataset integration.
     """
