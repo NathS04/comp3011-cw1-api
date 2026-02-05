@@ -1,24 +1,22 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..core.db import get_db
 from .. import crud
-from ..models import RSVP
+from ..models import RSVP, User
 from ..schemas import (
     EventCreate, EventUpdate, EventOut, EventStatsOut,
-    AttendeeCreate, AttendeeOut,
-    EventCreate, EventUpdate, EventOut, EventStatsOut, PaginatedResponse,
+    PaginatedResponse,
     AttendeeCreate, AttendeeOut,
     RSVPCreate, RSVPOut,
     UserCreate, UserOut, Token,
 )
-from ..models import User
 from ..core import auth
 from fastapi.security import OAuth2PasswordRequestForm
 import logging
@@ -78,10 +76,10 @@ def list_events(
     location: Optional[str] = None, 
     start_after: Optional[datetime] = None, 
     start_before: Optional[datetime] = None, 
-    limit: int = 10,
-    offset: int = 0,
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     sort: Optional[str] = None,
-    min_capacity: Optional[int] = None,
+    min_capacity: Optional[int] = Query(None, ge=1),
     status: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
