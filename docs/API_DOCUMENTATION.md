@@ -1,6 +1,6 @@
 # EventHub API Documentation
 
-**Version:** 1.2.0  
+**Version:** 1.3.0  
 **Author:** Nathaniel Sebastian (sc232ns@leeds.ac.uk)  
 **Last Updated:** 5th February 2026  
 
@@ -9,14 +9,16 @@
 ## Table of Contents
 
 1. [Base URLs](#base-urls)
-2. [Authentication](#authentication)
-3. [Events](#events)
-4. [Attendees](#attendees)
-5. [RSVPs](#rsvps)
-6. [Analytics & Recommendations](#analytics--recommendations)
-7. [Admin & Dataset Management](#admin--dataset-management)
-8. [Error Handling](#error-response-format)
-9. [Running Locally](#running-locally)
+2. [Security Model](#security-model)
+3. [Response Headers](#response-headers)
+4. [Authentication](#authentication)
+5. [Events](#events)
+6. [Attendees](#attendees)
+7. [RSVPs](#rsvps)
+8. [Analytics & Recommendations](#analytics--recommendations)
+9. [Admin & Dataset Management](#admin--dataset-management)
+10. [Error Handling](#error-response-format)
+11. [Running Locally](#running-locally)
 
 ---
 
@@ -49,26 +51,68 @@ All endpoints that modify data require a valid JWT token in the `Authorization` 
 - Hashed with PBKDF2-SHA256 (via `passlib`)
 - Plaintext passwords never stored
 
-### Authorization Levels
+### Authorization Levels (RBAC)
 | Role | Capabilities |
 |------|--------------|
 | **Anonymous** | Read events, attendees, analytics |
 | **Authenticated User** | Create/update/delete events, RSVPs, attendees |
 | **Admin** | Dataset import, view import logs |
 
-> **Note:** Current implementation does not enforce role separation; all authenticated users have full access. Admin role-based access is planned for future work.
+> **Important:** Admin endpoints (`/admin/*`) require the `is_admin` flag to be `True` on the user account. Non-admin users receive `403 Forbidden`.
 
-### Error Response Format
-All errors return consistent JSON:
-```json
-{"detail": "Human-readable error message"}
+### Rate Limiting
+| Scope | Limit | Response |
+|-------|-------|----------|
+| Global | 120 requests/minute | `429 Too Many Requests` |
+| `/auth/login` | 10 requests/minute | `429 Too Many Requests` |
+
+Rate limit responses include `request_id` in JSON body and `X-Request-ID` header.
+
+---
+
+## Response Headers
+
+**All responses include:**
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `X-Request-ID` | UUID v4 | Request tracing and correlation |
+| `X-Content-Type-Options` | `nosniff` | MIME type sniffing prevention |
+| `X-Frame-Options` | `DENY` | Clickjacking protection |
+
+**Auth/Admin endpoints additionally include:**
+
+| Header | Value |
+|--------|-------|
+| `Cache-Control` | `no-store` |
+
+**GET requests (200 OK) include:**
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `ETag` | `"<sha256-hash>"` | Conditional GET support |
+
+### Conditional GET (ETag)
+
+Clients can use the `If-None-Match` header to avoid re-downloading unchanged data:
+
+```bash
+# First request - get ETag
+curl -i http://127.0.0.1:8000/events
+# Response includes: ETag: "abc123..."
+
+# Subsequent request - use ETag
+curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
+# Response: 304 Not Modified (no body)
 ```
+
+**304 Response includes:** `ETag`, `X-Request-ID`, security headers (no body).
 
 ---
 
 ## Authentication
 
-Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token. Read operations (GET) are generally public.
+Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token.
 
 ### Auth Flow Summary
 
@@ -102,12 +146,6 @@ Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token.
 }
 ```
 
-**Error Responses:**
-| Status | Meaning |
-|--------|---------|
-| `400 Bad Request` | Username or email already registered |
-| `422 Unprocessable Entity` | Validation failed (e.g., password too short) |
-
 ---
 
 ### Login
@@ -129,25 +167,6 @@ password=mySecurePassword123
   "token_type": "bearer"
 }
 ```
-
-**Error Response (401 Unauthorized):**
-```json
-{
-  "detail": "Incorrect username or password"
-}
-```
-
----
-
-### Using the Token
-
-Include the token in the `Authorization` header for all protected requests:
-
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**Token Expiry:** 30 minutes
 
 ---
 
@@ -172,11 +191,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | `min_capacity` | integer | Minimum capacity | `?min_capacity=50` |
 | `status` | string | `upcoming` or `past` | `?status=upcoming` |
 
-**Example Request:**
-```
-GET /events?limit=5&sort=-start_time&status=upcoming
-```
-
 **Success Response (200 OK):**
 ```json
 {
@@ -198,6 +212,8 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 }
 ```
 
+**Response Headers:** `ETag: "<hash>"`, `X-Request-ID: "<uuid>"`
+
 ---
 
 ### Create Event
@@ -217,29 +233,7 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 }
 ```
 
-**Validation Rules:**
-| Field | Rules |
-|-------|-------|
-| `title` | Required, 1–200 characters |
-| `description` | Optional, max 1000 characters |
-| `location` | Required, 1–200 characters |
-| `start_time` | Required, ISO 8601 datetime |
-| `end_time` | Required, must be after `start_time` |
-| `capacity` | Required, integer ≥ 1 |
-
-**Success Response (201 Created):**
-```json
-{
-  "id": 2,
-  "title": "Freshers Welcome Social",
-  "description": "Welcome event for new students at Leeds University.",
-  "location": "Leeds Student Union, Riley Smith Hall",
-  "start_time": "2026-09-25T19:00:00Z",
-  "end_time": "2026-09-25T23:00:00Z",
-  "capacity": 200,
-  "created_at": "2026-02-04T14:00:00Z"
-}
-```
+**Success Response (201 Created):** Returns event object with `id`.
 
 ---
 
@@ -248,9 +242,7 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 **Endpoint:** `GET /events/{id}`  
 **Auth Required:** No
 
-**Success Response (200 OK):** Returns single event object.
-
-**Error Response (404):** `{"detail": "Event not found"}`
+**Response Headers:** `ETag: "<hash>"`
 
 ---
 
@@ -267,8 +259,6 @@ GET /events?limit=5&sort=-start_time&status=upcoming
 }
 ```
 
-Only include fields you want to update.
-
 ---
 
 ### Delete Event
@@ -277,26 +267,6 @@ Only include fields you want to update.
 **Auth Required:** Yes
 
 **Success Response:** `204 No Content`
-
----
-
-### Get Event Statistics
-
-**Endpoint:** `GET /events/{id}/stats`  
-**Auth Required:** No
-
-**Success Response (200 OK):**
-```json
-{
-  "event_id": 1,
-  "going": 35,
-  "maybe": 10,
-  "not_going": 5,
-  "remaining_capacity": 15
-}
-```
-
-**Formula:** `remaining_capacity = capacity - going`
 
 ---
 
@@ -315,15 +285,6 @@ Only include fields you want to update.
 }
 ```
 
-**Success Response (201 Created):**
-```json
-{
-  "id": 1,
-  "name": "Alice Smith",
-  "email": "alice.smith@leeds.ac.uk"
-}
-```
-
 **Error:** `409 Conflict` if email already registered.
 
 ---
@@ -332,15 +293,6 @@ Only include fields you want to update.
 
 **Endpoint:** `GET /attendees/{id}`  
 **Auth Required:** No
-
----
-
-### Get Events for Attendee
-
-**Endpoint:** `GET /attendees/{id}/events`  
-**Auth Required:** No
-
-Returns all events the attendee has RSVP'd to.
 
 ---
 
@@ -367,37 +319,19 @@ Returns all events the attendee has RSVP'd to.
 
 ---
 
-### List RSVPs for Event
-
-**Endpoint:** `GET /events/{event_id}/rsvps`  
-**Auth Required:** No
-
----
-
-### Delete RSVP
-
-**Endpoint:** `DELETE /events/{event_id}/rsvps/{rsvp_id}`  
-**Auth Required:** Yes
-
----
-
 ## Analytics & Recommendations
-
-These endpoints provide derived insights beyond basic CRUD operations.
 
 ### Event Seasonality
 
 **Endpoint:** `GET /analytics/events/seasonality`  
-**Auth Required:** No  
-**Purpose:** Aggregate events by month to identify seasonal patterns.
+**Auth Required:** No
 
 **Success Response (200 OK):**
 ```json
 {
   "items": [
     {"month": "2026-01", "count": 5, "top_categories": ["General"]},
-    {"month": "2026-02", "count": 12, "top_categories": ["General"]},
-    {"month": "2026-03", "count": 8, "top_categories": ["General"]}
+    {"month": "2026-02", "count": 12, "top_categories": ["General"]}
   ]
 }
 ```
@@ -409,33 +343,9 @@ These endpoints provide derived insights beyond basic CRUD operations.
 **Endpoint:** `GET /analytics/events/trending`  
 **Auth Required:** No
 
-**Query Parameters:**
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `window_days` | integer | 30 | Days to consider for "recent" RSVPs |
-| `limit` | integer | 5 | Max events to return |
-
 **Trending Score Formula:**
 ```
 score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
-```
-
-**Success Response (200 OK):**
-```json
-[
-  {
-    "event_id": 3,
-    "title": "AI Workshop",
-    "trending_score": 15.5,
-    "recent_rsvps": 8
-  },
-  {
-    "event_id": 7,
-    "title": "Networking Night",
-    "trending_score": 12.0,
-    "recent_rsvps": 6
-  }
-]
 ```
 
 ---
@@ -443,48 +353,20 @@ score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
 ### Personalised Recommendations
 
 **Endpoint:** `GET /events/recommendations`  
-**Auth Required:** Yes  
-**Purpose:** Suggest upcoming events based on user's RSVP history.
+**Auth Required:** Yes
 
-**Algorithm:**
-1. Find attendee record matching the authenticated user's email.
-2. Identify locations the user has previously attended.
-3. Recommend future events at those locations.
-4. Cold start: If no history, return top upcoming events.
-
-**Success Response (200 OK):**
-```json
-{
-  "recommendations": [
-    {
-      "event_id": 12,
-      "title": "Python Meetup",
-      "score": 0.9,
-      "reason": "Based on your interest in Leeds Digital Hub",
-      "location": "Leeds Digital Hub",
-      "start_time": "2026-03-20T18:00:00Z"
-    }
-  ],
-  "user_id": 5
-}
-```
+Returns events based on user's RSVP history locations.
 
 ---
 
 ## Admin & Dataset Management
 
-These endpoints manage external data integration and are protected by authentication.
+> **Important:** All `/admin/*` endpoints require the `is_admin` flag to be `True`. Non-admin users receive `403 Forbidden`.
 
 ### Trigger Dataset Import
 
 **Endpoint:** `POST /admin/imports/run`  
-**Auth Required:** Yes
-
-**Query Parameters:**
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `source_type` | string | `xml` | `xml` (Leeds TEN) or `csv` (local file) |
-| `source_url` | string | Leeds XML URL | URL or file path to import |
+**Auth Required:** Admin
 
 **Example Request:**
 ```bash
@@ -505,52 +387,14 @@ curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
 ### List Import Runs
 
 **Endpoint:** `GET /admin/imports`  
-**Auth Required:** Yes
-
-**Query Parameters:**
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | integer | 10 | Max results to return |
-
-**Success Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "data_source_id": 1,
-    "status": "success",
-    "started_at": "2026-02-05T01:00:00Z",
-    "rows_inserted": 487,
-    "sha256_hash": "a3f2c4e5b6d7...",
-    "duration_ms": 2134
-  }
-]
-```
+**Auth Required:** Admin
 
 ---
 
 ### Get Dataset Metadata
 
 **Endpoint:** `GET /admin/dataset/meta`  
-**Auth Required:** Yes
-
-**Success Response (200 OK):**
-```json
-{
-  "source_name": "Leeds Temporary Events",
-  "source_url": "https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml",
-  "last_import": "2026-02-05T01:00:00Z",
-  "rows_inserted": 487,
-  "sha256_hash": "a3f2c4e5b6d7..."
-}
-```
-
-**If No Data Imported:**
-```json
-{
-  "message": "No dataset imported yet"
-}
-```
+**Auth Required:** Admin
 
 ---
 
@@ -564,32 +408,26 @@ All error responses follow a consistent format:
 }
 ```
 
-For validation errors (422):
-
+**500 Internal Server Error includes request_id:**
 ```json
 {
-  "detail": [
-    {
-      "loc": ["body", "capacity"],
-      "msg": "Input should be greater than or equal to 1",
-      "type": "greater_than_equal"
-    }
-  ]
+  "detail": "Internal Server Error",
+  "request_id": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
 ---
 
-
 ## Common Failure Modes
 
-| Scenario | HTTP Status | Response Example | Reason |
-|----------|-------------|------------------|--------|
-| **Missing Token** | `401 Unauthorized` | `{"detail": "Not authenticated"}` | Endpoint requires login but no header sent. |
-| **Invalid Token** | `401 Unauthorized` | `{"detail": "Could not validate credentials"}` | Token expired, tampered, or wrong secret. |
-| **Duplicate Email** | `400 Bad Request` | `{"detail": "Email already registered"}` | User/Attendee registration with existing email. |
-| **RSVP Conflict** | `409 Conflict` | `{"detail": "Attendee already has an RSVP for this event"}` | User tries to RSVP twice to same event. |
-| **Empty Dataset** | `200 OK` | `{"message": "No dataset imported yet"}` | Analytics/Admin endpoints called before import run. |
+| Scenario | HTTP Status | Response Example |
+|----------|-------------|------------------|
+| **Missing Token** | `401 Unauthorized` | `{"detail": "Not authenticated"}` |
+| **Invalid Token** | `401 Unauthorized` | `{"detail": "Could not validate credentials"}` |
+| **Non-Admin on /admin/*` | `403 Forbidden` | `{"detail": "The user doesn't have enough privileges"}` |
+| **RSVP Conflict** | `409 Conflict` | `{"detail": "duplicate RSVP for this attendee/event"}` |
+| **Rate Limited** | `429 Too Many Requests` | `{"detail": "Too Many Requests", "request_id": "<uuid>"}` |
+| **Server Error** | `500 Internal Server Error` | `{"detail": "Internal Server Error", "request_id": "<uuid>"}` |
 
 ---
 
@@ -600,109 +438,28 @@ For validation errors (422):
 | `200` | OK | Successful GET, PATCH |
 | `201` | Created | Successful POST |
 | `204` | No Content | Successful DELETE |
+| `304` | Not Modified | ETag match (If-None-Match) |
 | `400` | Bad Request | Invalid data (duplicate username) |
 | `401` | Unauthorized | Missing/invalid JWT |
+| `403` | Forbidden | Non-admin accessing admin routes |
 | `404` | Not Found | Resource doesn't exist |
 | `409` | Conflict | Duplicate entry |
 | `422` | Unprocessable Entity | Validation failed |
-| `500` | Internal Server Error | Unexpected error |
-
----
-
-## End-to-End Example Flow
-
-This demonstrates a complete user journey: registration → login → event creation → RSVP → analytics.
-
-### Step 1: Register
-```bash
-curl -X POST http://127.0.0.1:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","email":"alice@example.com","password":"SecurePass123"}'
-```
-**Response:** `201 Created` with user object.
-
-### Step 2: Login
-```bash
-curl -X POST http://127.0.0.1:8000/auth/login \
-  -d "username=alice&password=SecurePass123"
-```
-**Response:** `{"access_token": "eyJ...", "token_type": "bearer"}`
-
-### Step 3: Create Event
-```bash
-TOKEN="eyJ..."  # from Step 2
-curl -X POST http://127.0.0.1:8000/events \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"AI Workshop","location":"Leeds Digital Hub","start_time":"2026-03-15T14:00:00Z","end_time":"2026-03-15T17:00:00Z","capacity":30}'
-```
-**Response:** `201 Created` with `{"id": 1, ...}`.
-
-### Step 4: Create Attendee
-```bash
-curl -X POST http://127.0.0.1:8000/attendees \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Alice Smith","email":"alice@example.com"}'
-```
-**Response:** `201 Created` with `{"id": 1, ...}`.
-
-### Step 5: RSVP to Event
-```bash
-curl -X POST http://127.0.0.1:8000/events/1/rsvps \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"attendee_id": 1, "status": "going"}'
-```
-**Response:** `201 Created`.
-
-### Step 6: Check Event Stats
-```bash
-curl http://127.0.0.1:8000/events/1/stats
-```
-**Response:** `{"event_id": 1, "going": 1, "maybe": 0, "remaining_capacity": 29}`.
-
-### Step 7: Get Trending Events
-```bash
-curl http://127.0.0.1:8000/analytics/events/trending
-```
-**Response:** List of events ranked by trending score.
-
-### Step 8: Get Personalized Recommendations
-```bash
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/events/recommendations
-```
-**Response:** Events at locations user has previously attended.
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Unexpected error (includes `request_id`) |
 
 ---
 
 ## Running Locally
 
-### Prerequisites
-- Python 3.11+
-- pip
-
 ### Setup
 ```bash
-# Clone repository
 git clone https://github.com/NathS04/comp3011-cw1-api.git
 cd comp3011-cw1-api
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-# Set environment variables
-export DATABASE_URL="sqlite:///./app.db"
-export SECRET_KEY="your-secret-key"
-
-# Run migrations
+export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="your-secret-key"
 alembic upgrade head
-
-# Start server
 uvicorn app.main:app --reload
 ```
 
@@ -711,37 +468,7 @@ uvicorn app.main:app --reload
 pytest -v
 ```
 
-**Result:** 31 tests passing
-
----
-
-## Demo Script (cURL)
-
-```bash
-# 1. Health check
-curl http://127.0.0.1:8000/health
-
-# 2. Register
-curl -X POST http://127.0.0.1:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"demo","email":"demo@test.com","password":"password123"}'
-
-# 3. Login
-TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
-  -d "username=demo&password=password123" | jq -r '.access_token')
-
-# 4. Create event
-curl -X POST http://127.0.0.1:8000/events \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Demo Event","location":"Leeds","start_time":"2026-03-01T10:00:00","end_time":"2026-03-01T12:00:00","capacity":50}'
-
-# 5. Get trending
-curl http://127.0.0.1:8000/analytics/events/trending
-
-# 6. Get recommendations
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/events/recommendations
-```
+**Result:** 39 tests passing
 
 ---
 
@@ -749,6 +476,8 @@ curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/events/recommendati
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3.0 | 2026-02-05 | Added ETag/304 support, improved 429/500 responses with request_id |
+| 1.2.0 | 2026-02-05 | Added RBAC, rate limiting, security headers |
 | 1.1.0 | 2026-02-04 | Added analytics and recommendations endpoints |
 | 1.0.0 | 2026-02-01 | Initial release |
 
