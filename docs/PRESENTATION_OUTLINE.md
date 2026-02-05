@@ -1,6 +1,6 @@
 # EventHub – Presentation Slides Outline
 
-**COMP3011 CW1 – Oral Presentation (5 minutes + 5 mins Q&A)**
+**COMP3011 CW1 – 5 minutes + 5 mins Q&A**
 
 ---
 
@@ -11,228 +11,134 @@
 - Nathaniel Sebastian (sc232ns)
 - COMP3011 Web Services and Web Data
 - 5th February 2026
-
-*Live demo: comp3011-cw1-api.onrender.com*
+- Live: comp3011-cw1-api.onrender.com
 
 ---
 
 ## Slide 2: Problem & Solution
 
-**Problem:**
-- Student societies need to manage event registrations
-- Track RSVPs, capacity, and attendance patterns
+**Problem:** Student societies need event registration management
 
 **Solution:**
 - RESTful API with JWT authentication
 - Full CRUD for Events, Attendees, RSVPs
-- **Novel:** External data import + Analytics + Security hardening
+- Real-world data integration + Analytics
+- Production-grade security
 
 ---
 
-## Slide 3: Architecture Overview
+## Slide 3: Architecture
 
-**[INSERT ARCHITECTURE DIAGRAM]**
-
-```mermaid
-flowchart LR
-    Client --> Middleware --> FastAPI --> Auth --> Routes --> CRUD --> ORM --> DB
+```
+Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes → CRUD → SQLAlchemy → DB
 ```
 
-**Key decisions:**
-- Layered architecture (thin routes, fat CRUD)
-- Middleware: rate limiting, request IDs, ETag
-- SQLite for dev, PostgreSQL for prod
+**Key Design:**
+- Layered architecture
+- SQLite (dev) / PostgreSQL (prod)
+- Middleware handles cross-cutting concerns
 
 ---
 
-## Slide 4: Data Model (ERD)
+## Slide 4: Outstanding Evidence
 
-**[INSERT ERD DIAGRAM]**
-
-Key entities:
-- User (with `is_admin` flag), Event, Attendee, RSVP
-- **NEW:** DataSource, ImportRun (provenance tracking)
-
-**Invariants:**
-- RSVP unique constraint (event_id, attendee_id)
-- Event provenance via source_record_id
+| Feature | Evidence |
+|---------|----------|
+| **39 tests passing** | `pytest -q` |
+| **RBAC** | `/admin/*` → 403 for non-admin |
+| **Rate limiting** | 429 with `request_id` |
+| **Security headers** | X-Request-ID, nosniff, DENY on all responses |
+| **ETag caching** | If-None-Match → 304 |
+| **Error sanitization** | 500s show generic message only |
+| **Provenance** | SHA256 hash in ImportRun |
 
 ---
 
 ## Slide 5: Novel Data Integration
 
-**What makes this "Outstanding":**
+**Leeds City Council XML:**
+- Real-world parsing
+- SHA256 provenance
+- Idempotent imports
 
-1. **Import pipeline** (`scripts/import_dataset.py`)
-   - Reads XML from Leeds City Council
-   - Computes SHA256 hash for provenance
-   - Logs ImportRun statistics
-
-2. **Idempotent design**
-   - Re-running updates existing records
-   - Uses source_record_id for deduplication
-
-3. **Provenance tracking**
-   - Every imported event links to its source
-   - Audit trail in import_runs table
+**Analytics:**
+- `/analytics/events/seasonality`
+- `/analytics/events/trending`
+- `/events/recommendations`
 
 ---
 
-## Slide 6: Analytics Endpoints
-
-**Three novel endpoints:**
-
-| Endpoint | Purpose |
-|----------|---------|
-| `/analytics/events/seasonality` | Monthly event counts |
-| `/analytics/events/trending` | Score by recent RSVPs |
-| `/events/recommendations` | Personalised suggestions |
-
-**Trending formula:**
-```
-score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
-```
-
----
-
-## Slide 7: Security Hardening (Beyond Baseline)
+## Slide 6: Security Model
 
 | Feature | Implementation |
 |---------|---------------|
-| **RBAC** | `is_admin` flag; `/admin/*` returns 403 for non-admin |
-| **Rate Limiting** | 120/min global, 10/min login → 429 with request_id |
-| **Request Tracing** | `X-Request-ID` on all responses (including errors) |
-| **Security Headers** | nosniff, DENY, no-store |
-| **ETag Caching** | If-None-Match → 304 Not Modified |
-| **Error Sanitization** | 500s show generic message, no stack traces |
+| RBAC | `is_admin` flag; 403 on admin routes |
+| Rate Limiting | 120/min global, 10/min login |
+| Request Tracing | X-Request-ID on all responses |
+| Headers | nosniff, DENY, no-store |
+| ETag | Conditional GET, 304 |
+| Error Sanitization | No stack traces |
 
 ---
 
-## Slide 8: Testing & Quality
+## Slide 7: Testing
 
-**39 tests passing:**
-- Auth: 6 tests (register, login, edge cases)
-- Events: 5 tests (CRUD, pagination)
-- RSVPs: 4 tests (create, duplicate rejection)
-- Analytics: 4 tests (seasonality, trending, recommendations)
-- Admin/Import: 3 tests (idempotency, provenance)
-- RBAC/Security: 2 tests (admin-only access, 403 Forbidden)
-- Middleware: 2 tests (security headers, rate limiting 429)
-- Attendees: 4 tests
-- Health: 1 test (metadata endpoint)
-- ETag: 3 tests (generation, 304, mismatch)
-- Error Handling: 1 test (sanitization)
+**39 tests:** Auth, Events, RSVPs, Analytics, Admin, RBAC, Middleware, ETag, Errors
 
-**Test isolation:**
-- In-memory SQLite with StaticPool
-- Fresh tables per test
-- <1.5s total runtime
+- In-memory SQLite isolation
+- <1.5s runtime
 
 ---
 
-## Slide 9: Version Control Evidence
+## Slide 8: Deliverables
 
-**[INSERT GIT LOG SCREENSHOT]**
-
-**Commit history highlights:**
-- Incremental development with meaningful messages
-- Feature branches for major work
-
-**Example commits:**
-- `feat: Add novel data integration tables`
-- `fix(mw): request-id + headers on all responses`
-- `test(etag): add tests for 304 behaviour`
-
----
-
-## Slide 10: All Deliverables
-
-| Deliverable | Location |
-|-------------|----------|
-| GitHub Repo | github.com/NathS04/comp3011-cw1-api |
+| Item | Location |
+|------|----------|
+| GitHub | github.com/NathS04/comp3011-cw1-api |
 | Live API | comp3011-cw1-api.onrender.com |
-| API Docs (PDF) | docs/API_DOCUMENTATION.pdf |
-| Technical Report | TECHNICAL_REPORT.pdf |
-| Presentation | docs/PRESENTATION_SLIDES.pptx |
+| API Docs | docs/API_DOCUMENTATION.pdf |
+| Report | TECHNICAL_REPORT.pdf |
+| Slides | docs/PRESENTATION_SLIDES.pptx |
 | GenAI Logs | docs/GENAI_EXPORT_LOGS.pdf |
 
 ---
 
-## Slide 11: GenAI Usage
+## Slide 9: GenAI Usage
 
-**Tools:** Google Gemini (Antigravity), Claude, ChatGPT
+**Tools:** Gemini, Claude, ChatGPT
 
-**How I used AI:**
-- Architecture exploration (RSVP table vs embedded)
-- Scaffolding and debugging
-- Security hardening (RBAC, rate limiting, ETag)
-- Documentation drafting
+**Uses:** Architecture, debugging, security hardening
 
-**Critical evaluation:**
-- Caught missing dependency (`requests`)
-- Fixed placeholder test logic
-- Updated deprecated API usage
-
-*Full logs: docs/GENAI_EXPORT_LOGS.pdf*
+**Failures Caught:** Missing dep, placeholder tests, deprecated syntax
 
 ---
 
-## Slide 12: Limitations & Future Work
-
-**Current limitations:**
-- 30-min token expiry, no refresh
-- In-memory rate limiting (no shared state across workers)
-- No CSP header for XSS mitigation
-
-**Future roadmap:**
-- Redis-backed rate limiting
-- Refresh token implementation
-- Celery scheduled imports
-- Content-Security-Policy header
-
----
-
-## Slide 13: Live Demo
-
-**Demo flow (if time):**
-1. Show Swagger UI at /docs
-2. Register → Login → Create event
-3. Create attendee → RSVP
-4. Show /events/{id}/stats
-5. Show /analytics/events/trending
-6. Demonstrate 304 Not Modified with ETag
-
-*Backup: Screenshots in slides*
-
----
-
-## Slide 14: Viva Preparation (Q&A Cheat Sheet)
+## Slide 10: Viva Preparation
 
 | Question | Answer |
 |----------|--------|
-| **Why JWT over sessions?** | Stateless suits REST; no Redis needed; 30-min expiry mitigates risk |
-| **How does idempotency work?** | `source_record_id` unique constraint; upsert logic updates existing |
-| **How does trending scoring work?** | `(recent_rsvps × 1.5) + (total_rsvps × 0.5)` |
-| **What would you change for production?** | Redis rate limiting, refresh tokens, CSP header, proper monitoring |
-| **Why ETag caching?** | Demonstrates HTTP standards knowledge; saves bandwidth; RFC 7232 compliant |
-| **How does RBAC work?** | `is_admin` boolean on User; `get_current_admin_user` dependency returns 403 |
-| **How do you promote a user to admin?** | `python scripts/make_admin.py <username>` |
-| **Why in-memory rate limiting?** | Acceptable for coursework; documented Redis as production upgrade |
-| **How do you avoid leaking exceptions?** | Middleware catch-all returns generic message + request_id; stack trace logged server-side |
-| **Why X-Request-ID?** | Correlates logs/errors; included in 429/500 JSON for debugging |
-| **How did AI help?** | Architecture exploration, scaffolding—always reviewed before commit |
-| **What did AI get wrong?** | Missing `requests` dep, placeholder test, deprecated Query usage |
+| **Why JWT?** | Stateless, no Redis needed, 30-min expiry |
+| **Why in-memory rate limit?** | Acceptable for coursework; Redis for prod |
+| **How does ETag work?** | SHA256 of body → If-None-Match → 304 |
+| **How is RBAC enforced?** | `is_admin` flag; `get_current_admin_user` dependency → 403 |
+| **How to promote admin?** | `python scripts/make_admin.py username` |
+| **Why X-Request-ID?** | Tracing; included in 500/429 JSON |
+| **How prevent error leakage?** | No `detail=str(e)`; middleware sanitizes |
+| **Why this dataset?** | Real XML parsing, provenance, beyond CSV |
+| **What headers on 429?** | X-Request-ID, nosniff, DENY, no-store |
+| **How is 304 tested?** | `test_etags.py` asserts no body, ETag header |
+| **What AI got wrong?** | Missing `requests`, placeholder tests |
+| **What's the test count?** | 39 passed |
 
 ---
 
-## Slide 15: Thank You
+## Slide 11: Thank You
 
 **Questions?**
 
-- Live API: comp3011-cw1-api.onrender.com
-- Swagger: /docs
-- Contact: sc232ns@leeds.ac.uk
+- Live: comp3011-cw1-api.onrender.com/docs
+- Email: sc232ns@leeds.ac.uk
 
 ---
 
-*Presentation outline for COMP3011 CW1 – 5th February 2026*
+*COMP3011 CW1 – 5th February 2026*
