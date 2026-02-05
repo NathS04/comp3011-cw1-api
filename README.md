@@ -13,6 +13,7 @@ A production-grade REST API for event management with **real-world data integrat
 
 | Document | Format | Path |
 |----------|--------|------|
+| **Live API** | URL | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
 | **API Documentation** | PDF | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
 | **Technical Report** | PDF | [TECHNICAL_REPORT.pdf](TECHNICAL_REPORT.pdf) |
 | **Presentation Slides** | PPTX | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
