@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
-[![Tests](https://img.shields.io/badge/Tests-39%20passing-brightgreen.svg)](#running-tests)
+[![Tests](https://img.shields.io/badge/Tests-41%20passing-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A production-grade REST API for event management with **real-world data integration** from Leeds City Council and **intelligent analytics**. Built for COMP3011 Web Services coursework at the University of Leeds.
@@ -21,7 +21,7 @@ A production-grade REST API for event management with **real-world data integrat
 
 ---
 
-## 🚀 Reproducibility
+## 🚀 Quickstart
 
 ```bash
 # Clone & setup
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 # Configure & run
 export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-key-change-me"
 alembic upgrade head
-pytest -q                    # Expected: 39 passed
+pytest -q                    # Expected: 41 passed
 uvicorn app.main:app --reload
 ```
 
@@ -51,27 +51,30 @@ uvicorn app.main:app --reload
 
 ---
 
-## 📊 Dataset Import
+## 🔒 Security & Standards
 
-Integrates **Leeds City Council Temporary Event Notices** (XML).
+| Feature | Implementation |
+|---------|---------------|
+| **RBAC** | `is_admin` flag; `/admin/*` returns 403 for non-admin |
+| **Rate Limiting** | 120/min global, 10/min login |
+| **429 Response** | `{"detail":"Too Many Requests","request_id":"<uuid>"}` |
+| **Request Tracing** | `X-Request-ID` header on **all** responses |
+| **Security Headers** | See table below |
+| **ETag Caching** | GET /events returns ETag; `If-None-Match` → 304 Not Modified |
+| **Error Sanitization** | 500 errors: `{"detail":"Internal Server Error","request_id":"<uuid>"}` |
+| **Provenance** | SHA256 hash stored; ImportRun table logs imports |
 
-```bash
-# Via API (admin JWT required)
-curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
-  -H "Authorization: Bearer $TOKEN"
-```
+### Security Headers (All Responses)
 
-**Provenance:** SHA256 hash stored; ImportRun table logs timestamp, duration, row counts.
-
----
-
-## 🧪 Running Tests
-
-```bash
-pytest -v
-```
-
-**Result:** 39 tests passing (auth, events, attendees, RSVPs, analytics, admin, RBAC, middleware, ETag, error handling)
+| Header | Value |
+|--------|-------|
+| `X-Request-ID` | UUID v4 |
+| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `no-referrer` |
+| `Permissions-Policy` | `geolocation=(), microphone=(), camera=()` |
+| `Cross-Origin-Resource-Policy` | `same-site` |
+| `Cache-Control` | `no-store` (default) or `no-cache` (ETag endpoints) |
 
 ---
 
@@ -107,19 +110,38 @@ pytest -v
 
 ---
 
-## 🔒 Security & Standards
+## 📊 Dataset Import
 
-| Feature | Implementation |
-|---------|---------------|
-| **RBAC** | `is_admin` flag; `/admin/*` returns 403 for non-admin |
-| **Rate Limiting** | 120/min global, 10/min login |
-| **429 Response** | `{"detail":"Too Many Requests","request_id":"<uuid>"}` |
-| **Request Tracing** | `X-Request-ID` header on **all** responses |
-| **Security Headers** | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` |
-| **Cache-Control** | `no-store` (default) or `no-cache` (GET with ETag) |
-| **ETag Caching** | GET responses include ETag; `If-None-Match` → 304 Not Modified |
-| **Error Sanitization** | 500 errors: `{"detail":"Internal Server Error","request_id":"<uuid>"}` |
-| **CORS** | Configurable via `ALLOWED_ORIGINS` |
+Integrates **Leeds City Council Temporary Event Notices** (XML).
+
+```bash
+# Via API (admin JWT required)
+curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Provenance:** SHA256 hash stored; ImportRun table logs timestamp, duration, row counts.
+
+---
+
+## 🧪 Running Tests
+
+```bash
+pytest -q
+```
+
+**Result:** 41 tests passing (auth, events, attendees, RSVPs, analytics, admin, RBAC, middleware, ETag, headers, error handling)
+
+---
+
+## 🛠 Quality Checks
+
+```bash
+pip install -r requirements-dev.txt
+bash scripts/quality_check.sh
+```
+
+Runs: ruff, mypy, bandit, pip-audit, pytest
 
 ---
 
@@ -134,8 +156,9 @@ comp3011-cw1-api/
 │   └── schemas.py      # Pydantic schemas
 ├── scripts/
 │   ├── import_dataset.py   # XML/CSV import with provenance
-│   └── make_admin.py       # Promote user to admin
-├── tests/              # 39 test cases
+│   ├── make_admin.py       # Promote user to admin
+│   └── quality_check.sh    # Linting + testing
+├── tests/              # 41 test cases
 ├── docs/               # PDF deliverables
 └── alembic/            # Migrations
 ```
