@@ -25,7 +25,7 @@
 **Solution:**
 - RESTful API with JWT authentication
 - Full CRUD for Events, Attendees, RSVPs
-- **Novel:** External data import + Analytics
+- **Novel:** External data import + Analytics + Security hardening
 
 ---
 
@@ -35,13 +35,13 @@
 
 ```mermaid
 flowchart LR
-    Client --> FastAPI --> Auth --> Routes --> CRUD --> ORM --> DB
+    Client --> Middleware --> FastAPI --> Auth --> Routes --> CRUD --> ORM --> DB
 ```
 
 **Key decisions:**
 - Layered architecture (thin routes, fat CRUD)
+- Middleware: rate limiting, request IDs, ETag
 - SQLite for dev, PostgreSQL for prod
-- Pydantic for validation
 
 ---
 
@@ -50,7 +50,7 @@ flowchart LR
 **[INSERT ERD DIAGRAM]**
 
 Key entities:
-- User, Event, Attendee, RSVP
+- User (with `is_admin` flag), Event, Attendee, RSVP
 - **NEW:** DataSource, ImportRun (provenance tracking)
 
 **Invariants:**
@@ -95,33 +95,38 @@ score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
 
 ---
 
-## Slide 7: Live Demo
+## Slide 7: Security Hardening (Beyond Baseline)
 
-**Demo flow (if time):**
-1. Show Swagger UI at /docs
-2. Register → Login → Create event
-3. Create attendee → RSVP
-4. Show /events/{id}/stats
-5. Show /analytics/events/trending
-6. Show /events/recommendations
-
-*Backup: Screenshots in slides*
+| Feature | Implementation |
+|---------|---------------|
+| **RBAC** | `is_admin` flag; `/admin/*` returns 403 for non-admin |
+| **Rate Limiting** | 120/min global, 10/min login → 429 with request_id |
+| **Request Tracing** | `X-Request-ID` on all responses (including errors) |
+| **Security Headers** | nosniff, DENY, no-store |
+| **ETag Caching** | If-None-Match → 304 Not Modified |
+| **Error Sanitization** | 500s show generic message, no stack traces |
 
 ---
 
 ## Slide 8: Testing & Quality
 
-**31 tests passing:**
-- Auth: 5 tests (register, login, edge cases)
-- Events: 7 tests (CRUD, pagination)
+**39 tests passing:**
+- Auth: 6 tests (register, login, edge cases)
+- Events: 5 tests (CRUD, pagination)
 - RSVPs: 4 tests (create, duplicate rejection)
 - Analytics: 4 tests (seasonality, trending, recommendations)
-- Admin/Import: 6 tests (idempotency, provenance)
-- Attendees: 5 tests
+- Admin/Import: 3 tests (idempotency, provenance)
+- RBAC/Security: 2 tests (admin-only access, 403 Forbidden)
+- Middleware: 2 tests (security headers, rate limiting 429)
+- Attendees: 4 tests
+- Health: 1 test (metadata endpoint)
+- ETag: 3 tests (generation, 304, mismatch)
+- Error Handling: 1 test (sanitization)
 
 **Test isolation:**
 - In-memory SQLite with StaticPool
 - Fresh tables per test
+- <1.5s total runtime
 
 ---
 
@@ -130,78 +135,17 @@ score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
 **[INSERT GIT LOG SCREENSHOT]**
 
 **Commit history highlights:**
-- 60+ commits showing incremental development
-- Meaningful commit messages
+- Incremental development with meaningful messages
 - Feature branches for major work
 
 **Example commits:**
 - `feat: Add novel data integration tables`
-- `fix(deps): Add requests to requirements.txt`
-- `test: Implement personalized recommendation assertions`
+- `fix(mw): request-id + headers on all responses`
+- `test(etag): add tests for 304 behaviour`
 
 ---
 
-## Slide 10: API Documentation Overview
-
-**Available at:** `docs/API_DOCUMENTATION.pdf`
-
-**Contents:**
-- Security model (JWT, password hashing)
-- Every endpoint with examples
-- Error codes and formats
-- End-to-end worked example
-
-**Also:** Interactive Swagger UI at /docs
-
----
-
-## Slide 11: Technical Report Highlights
-
-**Key sections:**
-1. Reproducibility (exact commands)
-2. Dataset provenance + licence
-3. Architecture + ERD diagrams
-4. Design decisions with trade-offs
-5. Security model + threat mitigation
-6. Evaluation metrics (measured)
-7. GenAI usage + failures + corrections
-
----
-
-## Slide 12: GenAI Usage
-
-**Tools:** Google Gemini (Antigravity), Claude
-
-**How I used AI:**
-- Architecture exploration (RSVP table vs embedded)
-- Scaffolding and debugging
-- Documentation drafting
-
-**Critical evaluation:**
-- Caught missing dependency (`requests`)
-- Fixed placeholder test logic
-- Updated deprecated API usage
-
-*Full logs: docs/GENAI_EXPORT_LOGS.pdf*
-
----
-
-## Slide 13: Limitations & Future Work
-
-**Current limitations:**
-- Single-tenant (no role-based access)
-- 30-min token expiry, no refresh
-- No rate limiting
-
-**Future roadmap:**
-- Add `is_admin` role column
-- Integrate `slowapi` for rate limiting
-- Celery scheduled imports
-- Refresh token implementation
-
----
-
-## Slide 14: All Deliverables
+## Slide 10: All Deliverables
 
 | Deliverable | Location |
 |-------------|----------|
@@ -214,24 +158,74 @@ score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
 
 ---
 
-## Slide 15: Viva Preparation (Q&A Cheat Sheet)
+## Slide 11: GenAI Usage
+
+**Tools:** Google Gemini (Antigravity), Claude, ChatGPT
+
+**How I used AI:**
+- Architecture exploration (RSVP table vs embedded)
+- Scaffolding and debugging
+- Security hardening (RBAC, rate limiting, ETag)
+- Documentation drafting
+
+**Critical evaluation:**
+- Caught missing dependency (`requests`)
+- Fixed placeholder test logic
+- Updated deprecated API usage
+
+*Full logs: docs/GENAI_EXPORT_LOGS.pdf*
+
+---
+
+## Slide 12: Limitations & Future Work
+
+**Current limitations:**
+- 30-min token expiry, no refresh
+- In-memory rate limiting (no shared state across workers)
+- No CSP header for XSS mitigation
+
+**Future roadmap:**
+- Redis-backed rate limiting
+- Refresh token implementation
+- Celery scheduled imports
+- Content-Security-Policy header
+
+---
+
+## Slide 13: Live Demo
+
+**Demo flow (if time):**
+1. Show Swagger UI at /docs
+2. Register → Login → Create event
+3. Create attendee → RSVP
+4. Show /events/{id}/stats
+5. Show /analytics/events/trending
+6. Demonstrate 304 Not Modified with ETag
+
+*Backup: Screenshots in slides*
+
+---
+
+## Slide 14: Viva Preparation (Q&A Cheat Sheet)
 
 | Question | Answer |
 |----------|--------|
 | **Why JWT over sessions?** | Stateless suits REST; no Redis needed; 30-min expiry mitigates risk |
 | **How does idempotency work?** | `source_record_id` unique constraint; upsert logic updates existing |
 | **How does trending scoring work?** | `(recent_rsvps × 1.5) + (total_rsvps × 0.5)` |
-| **What would you change for production?** | PostgreSQL, role-based access, rate limiting, refresh tokens |
+| **What would you change for production?** | Redis rate limiting, refresh tokens, CSP header, proper monitoring |
+| **Why ETag caching?** | Demonstrates HTTP standards knowledge; saves bandwidth; RFC 7232 compliant |
+| **How does RBAC work?** | `is_admin` boolean on User; `get_current_admin_user` dependency returns 403 |
+| **How do you promote a user to admin?** | `python scripts/make_admin.py <username>` |
+| **Why in-memory rate limiting?** | Acceptable for coursework; documented Redis as production upgrade |
+| **How do you avoid leaking exceptions?** | Middleware catch-all returns generic message + request_id; stack trace logged server-side |
+| **Why X-Request-ID?** | Correlates logs/errors; included in 429/500 JSON for debugging |
 | **How did AI help?** | Architecture exploration, scaffolding—always reviewed before commit |
 | **What did AI get wrong?** | Missing `requests` dep, placeholder test, deprecated Query usage |
-| **Why this dataset?** | Real-world XML, requires parsing/normalization, proves integration skill |
-| **How do you prevent duplicate RSVPs?** | UNIQUE(event_id, attendee_id) constraint at DB level |
-| **What's your security posture?** | PBKDF2 passwords, JWT HS256, Pydantic validation, param queries |
-| **How did you test?** | 31 tests, in-memory SQLite, function-scoped fixtures, <1s runtime |
 
 ---
 
-## Slide 16: Thank You
+## Slide 15: Thank You
 
 **Questions?**
 
