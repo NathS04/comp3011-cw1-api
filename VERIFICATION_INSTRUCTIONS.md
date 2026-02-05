@@ -1,66 +1,84 @@
-# How to Verify COMP3011 CW1 Submission
+# Verification Instructions
 
-**Instructions for Markers / ChatGPT Verification**
-
-To verify this submission is "clean" and runnable from scratch, follow these exact steps in a terminal.
+**COMP3011 CW1 – Marker Instructions**
 
 ---
 
-## 1. Prerequisite Check
-Ensure you have `python3.9+` installed.
+## 1. Prerequisites
+
+- Python 3.9+
+- `jq` (for JSON parsing in curl examples)
 
 ---
 
 ## 2. Extract & Setup
+
 ```bash
-# Unzip contents
-unzip comp3011-cw1-api_submission.zip -d submission_verify
-cd submission_verify
-
-# Create isolated environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies (requests included)
+unzip comp3011-cw1-api_submission.zip -d verify && cd verify/comp3011-cw1-api
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ---
 
-## 3. Verify Boot & Imports
-This checks if `requests` and `fastapi` are correctly wired up.
+## 3. Verify Imports
+
 ```bash
-# This command should run silently and return exit code 0
-python -c "import app.main; import requests; print('Imports Verified')"
+python -c "import app.main; import requests; print('OK')"
+# Expected: OK
 ```
 
 ---
 
-## 4. Run Test Suite
+## 4. Run Tests
+
 ```bash
-# Database migration (SQLite in-memory or local file)
-export DATABASE_URL="sqlite:///./test_verify.db"
-export SECRET_KEY="verification_secret"
+export DATABASE_URL="sqlite:///./test.db" SECRET_KEY="test"
 alembic upgrade head
-
-# Run full test suite
-pytest -v
+pytest -q
 ```
 
-**Expected Output:**
-- `39 passed`
-- `0 failed`
-- No `ModuleNotFoundError`
+**Expected:** `39 passed`
 
 ---
 
-## 5. Verify Admin RBAC
+## 5. Start Server
+
 ```bash
-# Start server in background
 uvicorn app.main:app --port 8000 &
 sleep 2
+```
 
-# Register a user
+---
+
+## 6. Verify /health
+
+```bash
+curl -s http://127.0.0.1:8000/health | jq
+```
+
+**Expected fields:** `status`, `database` ("ok"), `version`, `environment`, `commit`, `timestamp`
+
+---
+
+## 7. Verify Security Headers
+
+```bash
+curl -si http://127.0.0.1:8000/health | head -15
+```
+
+**Expected headers:**
+- `X-Request-ID: <uuid>`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Cache-Control: no-store`
+
+---
+
+## 8. Verify RBAC (403)
+
+```bash
+# Register non-admin user
 curl -X POST http://127.0.0.1:8000/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","password":"password123"}'
@@ -69,149 +87,104 @@ curl -X POST http://127.0.0.1:8000/auth/register \
 TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
   -d "username=testuser&password=password123" | jq -r '.access_token')
 
-# Try admin endpoint (should fail with 403)
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
-# Expected: {"detail":"The user doesn't have enough privileges"}
-
-# Promote to admin
-python scripts/make_admin.py testuser
-
-# Retry (should succeed)
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
-# Expected: [] or list of imports
+# Try admin endpoint
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports | jq
 ```
+
+**Expected:** `{"detail":"The user doesn't have enough privileges"}`
+
+```bash
+# Promote to admin and retry
+python scripts/make_admin.py testuser
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports | jq
+```
+
+**Expected:** `[]` or list of imports
 
 ---
 
-## 6. Verify ETag (Conditional GET)
+## 9. Verify ETag + 304
+
 ```bash
-# First request - get ETag
-ETAG=$(curl -si http://127.0.0.1:8000/events | grep -i etag | cut -d' ' -f2 | tr -d '\r')
+# First request
+ETAG=$(curl -si http://127.0.0.1:8000/events | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
 echo "ETag: $ETAG"
 
-# Second request - use If-None-Match
-curl -i -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events
-# Expected: HTTP/1.1 304 Not Modified (no body)
+# Conditional request
+curl -si -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events | head -10
 ```
+
+**Expected:** `HTTP/1.1 304 Not Modified` (no body)
 
 ---
 
-## 7. Verify Rate Limiting (429)
+## 10. Verify Rate Limiting (429)
+
 ```bash
-# Enable rate limiting
 export RATE_LIMIT_ENABLED=true
 
-# Flood auth endpoint (11 requests, limit is 10/min)
-for i in {1..11}; do
-  curl -s -o /dev/null -w "%{http_code}\n" -X POST http://127.0.0.1:8000/auth/login \
-    -d "username=fake&password=fake"
+# Flood login endpoint (limit: 10/min)
+for i in {1..12}; do
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8000/auth/login \
+    -d "username=fake&password=fake")
+  echo "Request $i: $CODE"
 done
-# Expected: 10x 401, then 429
+```
 
+**Expected:** First 10 return 401, then 429
+
+```bash
 # Verify 429 includes request_id
 curl -s -X POST http://127.0.0.1:8000/auth/login -d "username=fake&password=fake" | jq
-# Expected: {"detail": "Too Many Requests", "request_id": "<uuid>"}
 ```
+
+**Expected:** `{"detail":"Too Many Requests","request_id":"<uuid>"}`
 
 ---
 
-## 8. Verify Health Endpoint
+## 11. PDF Regeneration Checklist
+
+### Option A: VS Code
+1. Install "Markdown PDF" extension
+2. Open `.md` file
+3. Cmd+Shift+P → "Markdown PDF: Export (pdf)"
+
+### Option B: Pandoc
 ```bash
-curl http://127.0.0.1:8000/health | jq
-```
-
-**Expected fields:**
-- `status`: "online"
-- `database`: "ok"
-- `version`: "1.0.0"
-- `environment`: "dev" or "prod"
-- `commit`: SHA string
-- `timestamp`: ISO datetime
-
----
-
-## 9. Verify Security Headers
-```bash
-curl -si http://127.0.0.1:8000/health | head -20
-```
-
-**Expected headers:**
-- `X-Request-ID: <uuid>`
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-
----
-
-## 10. Start Server (Optional)
-```bash
-uvicorn app.main:app --port 8000
-# Visit http://127.0.0.1:8000/docs
-```
-
----
-
-## PDF Regeneration Checklist
-
-The repository contains PDF versions of documentation. To regenerate after editing:
-
-### Option A: Using a Markdown-to-PDF Tool
-```bash
-# Install pandoc + wkhtmltopdf
-brew install pandoc wkhtmltopdf
-
-# Generate PDFs
+pandoc README.md -o README.pdf
 pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf
 pandoc TECHNICAL_REPORT.md -o TECHNICAL_REPORT.pdf
 pandoc docs/GENAI_EXPORT_LOGS.md -o docs/GENAI_EXPORT_LOGS.pdf
 ```
 
-### Option B: Using VS Code
-1. Install "Markdown PDF" extension
-2. Open each `.md` file
-3. Cmd+Shift+P → "Markdown PDF: Export (pdf)"
+### Option C: Browser Print
+1. Open `.md` in GitHub or VS Code preview
+2. Print → Save as PDF
 
-### Option C: Online Converter
-1. Upload `.md` file to https://www.markdowntopdf.com/
-2. Download PDF
-3. Replace existing PDF in repo
-
-### After Regeneration
-Verify key numbers match:
+### PDF Verification
+After regeneration, confirm:
 - Test count: 39
-- Tools used: Gemini, Claude, ChatGPT
+- Tools: Gemini, Claude, ChatGPT
 - /health fields: status, database, version, environment, commit, timestamp
 
 ---
 
-## Final QA Checklist
-
-Before zipping for submission:
+## 12. Final QA Checklist
 
 ```bash
-# 1. Verify test count
-pytest -q | tail -1
+# Check for stale test counts
+grep -r "35 test\|35 passed\|31 test" --include="*.md" .
+# Expected: No matches (except this example grep)
+
+# Confirm pytest
+pytest -q
 # Expected: 39 passed
 
-# 2. Grep for stale "35" references
-grep -r "35 test" --include="*.md" .
-# Expected: No matches (all should say 39)
-
-# 3. Grep for consistency
-grep -r "Test Count\|tests passing" --include="*.md" .
-# All should say 39
-
-# 4. Quick curl checks
-curl http://127.0.0.1:8000/health | jq .status          # "online"
-curl -si http://127.0.0.1:8000/events | grep X-Request  # Should exist
-curl -si http://127.0.0.1:8000/events | grep ETag       # Should exist
-
-# 5. Confirm PDFs match MD content
-# Manually open each PDF and verify:
-# - Test count: 39
-# - ETag section present
-# - RBAC section present
+# Confirm all docs mention 39
+grep -r "39" --include="*.md" . | grep -i test
+# Should show consistent 39 across files
 ```
 
 ---
 
-*Verification instructions for COMP3011 CW1 – 5th February 2026*
+*COMP3011 CW1 – Verification Instructions*
