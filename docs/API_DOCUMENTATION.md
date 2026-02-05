@@ -25,6 +25,8 @@
 | **Production** | `https://comp3011-cw1-api.onrender.com` |
 | **Local** | `http://127.0.0.1:8000` |
 
+> ⚠️ Production uses Render free tier. First request after 15 min inactivity may take 30–60s. If 503, retry after 60s.
+
 **Interactive Docs:** `/docs` (Swagger) | `/redoc` (ReDoc)
 
 ---
@@ -46,15 +48,17 @@
 | Authenticated | Create/update/delete events, RSVPs, attendees |
 | **Admin** | Dataset import, import logs (`/admin/*`) |
 
-> **Admin enforcement:** All `/admin/*` endpoints require `is_admin=True`. Non-admin users receive `403 Forbidden`.
+**Admin enforcement:** All `/admin/*` endpoints require `is_admin=True`. Non-admin users receive:
+```json
+{"detail": "The user doesn't have enough privileges"}
+```
+HTTP status: `403 Forbidden`
 
 ### Rate Limiting
 | Scope | Limit |
 |-------|-------|
 | Global | 120 requests/minute |
 | `/auth/login` | 10 requests/minute |
-
-Exceeding limits returns `429 Too Many Requests` with `request_id` in JSON body.
 
 ---
 
@@ -67,9 +71,15 @@ Exceeding limits returns `429 Too Many Requests` with `request_id` in JSON body.
 | `X-Request-ID` | UUID v4 (for tracing) |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `DENY` |
-| `Cache-Control` | `no-store` (default) or `no-cache` (GET with ETag) |
 
-**GET requests (200 OK) include:**
+**Cache-Control varies by response type:**
+
+| Response Type | Cache-Control |
+|---------------|---------------|
+| GET 200 (with ETag) | `no-cache` |
+| All other responses | `no-store` |
+
+**GET 200 responses also include:**
 
 | Header | Value |
 |--------|-------|
@@ -80,11 +90,12 @@ Exceeding limits returns `429 Too Many Requests` with `request_id` in JSON body.
 ```bash
 # First request
 curl -i http://127.0.0.1:8000/events
-# Response: ETag: "abc123..."
+# Response headers include: ETag: "abc123..."
 
 # Conditional request
 curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
-# Response: 304 Not Modified (no body, ETag + X-Request-ID headers present)
+# Response: 304 Not Modified (no body)
+# Headers: ETag, X-Request-ID, Cache-Control: no-cache
 ```
 
 ---
@@ -115,7 +126,7 @@ curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
 {"detail": "Not authenticated"}
 ```
 
-**403 Forbidden (Admin-only):**
+**403 Forbidden (Admin-only endpoints):**
 ```json
 {"detail": "The user doesn't have enough privileges"}
 ```
@@ -124,13 +135,13 @@ curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
 ```json
 {"detail": "Too Many Requests", "request_id": "550e8400-e29b-41d4-a716-446655440000"}
 ```
+Headers include: `X-Request-ID: 550e8400-e29b-41d4-a716-446655440000`
 
 **500 Internal Server Error (sanitized):**
 ```json
 {"detail": "Internal Server Error", "request_id": "550e8400-e29b-41d4-a716-446655440000"}
 ```
-
-> Note: 500 errors never expose stack traces or exception details.
+> Note: Stack traces and exception details are never exposed.
 
 ---
 
@@ -140,11 +151,11 @@ curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
 ```
 GET /health
 ```
-Returns: `status`, `database` ("ok"/"error"), `version`, `environment`, `commit`, `timestamp`
+Returns: `status` ("online"), `database` ("ok"/"error"), `version`, `environment`, `commit`, `timestamp`
 
 ### Authentication
 ```
-POST /auth/register   → Create account
+POST /auth/register   → Create account (JSON body)
 POST /auth/login      → Get JWT token (form data: username, password)
 ```
 
@@ -228,7 +239,7 @@ curl http://127.0.0.1:8000/analytics/events/trending
 ### 6. Conditional GET (ETag)
 ```bash
 # Get ETag
-ETAG=$(curl -si http://127.0.0.1:8000/events | grep -i etag | cut -d' ' -f2 | tr -d '\r')
+ETAG=$(curl -si http://127.0.0.1:8000/events | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
 
 # Conditional request
 curl -i -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events
@@ -241,7 +252,7 @@ curl -i -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events
 
 ```bash
 git clone https://github.com/NathS04/comp3011-cw1-api.git && cd comp3011-cw1-api
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-secret"
 alembic upgrade head

@@ -3,7 +3,7 @@
 **Module:** COMP3011 – Web Services and Web Data  
 **Student:** Nathaniel Sebastian (sc232ns)  
 **Date:** 5th February 2026  
-**Word Count:** ~1,400 words
+**Word Count:** ~1,500 words
 
 ---
 
@@ -13,9 +13,6 @@
 |----------|------|
 | GitHub Repository | [github.com/NathS04/comp3011-cw1-api](https://github.com/NathS04/comp3011-cw1-api) |
 | Live API | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
-| API Documentation | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
-| Presentation Slides | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
-| GenAI Logs | [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf) |
 
 ---
 
@@ -32,7 +29,7 @@
 | Deployed API | ✅ | comp3011-cw1-api.onrender.com |
 | Novel data integration | ✅ | Leeds TEN XML with SHA256 provenance |
 | Authentication | ✅ | JWT + PBKDF2 |
-| Test suite | ✅ | 39 tests passing |
+| Test suite | ✅ | **39 tests passing** |
 
 ---
 
@@ -54,110 +51,59 @@ uvicorn app.main:app --reload
 
 | Attribute | Value |
 |-----------|-------|
-| Source | Leeds Temporary Event Notices |
+| Source | Leeds Temporary Event Notices [1] |
 | Provider | Leeds City Council (Data Mill North) |
 | Licence | Open Government Licence v3.0 |
 | Format | XML |
 | Fields Mapped | Reference_Number → ID, Premises_Name → Title |
-| Provenance | SHA256 hash stored in ImportRun table |
+| Provenance | SHA256 hash stored in `ImportRun` table |
 
 ---
 
 ## 4. Architecture
 
-```mermaid
-flowchart LR
-    Client --> Middleware
-    Middleware --> FastAPI
-    FastAPI --> Auth[JWT Auth]
-    Auth --> Routes
-    Routes --> CRUD
-    CRUD --> ORM[SQLAlchemy]
-    ORM --> DB[(PostgreSQL/SQLite)]
-    
-    subgraph Middleware
-        ReqID[X-Request-ID]
-        RateLimit[Rate Limiter]
-        ETag[ETag Generator]
-        SecHeaders[Security Headers]
-    end
+```
+Client → Middleware (Rate Limit, Headers, ETag) → FastAPI → Auth → Routes → CRUD → SQLAlchemy → DB
 ```
 
----
-
-## 5. Data Model (ERD)
-
-```mermaid
-erDiagram
-    User {
-        int id PK
-        string username UK
-        string email UK
-        string hashed_password
-        bool is_admin
-        datetime created_at
-    }
-    Event {
-        int id PK
-        string title
-        string location
-        datetime start_time
-        datetime end_time
-        int capacity
-        int source_id FK
-        string source_record_id UK
-    }
-    RSVP {
-        int id PK
-        int event_id FK
-        int attendee_id FK
-        string status
-    }
-    ImportRun {
-        int id PK
-        int data_source_id FK
-        string status
-        int rows_inserted
-        string sha256_hash
-        int duration_ms
-    }
-    
-    User ||--o{ Event : creates
-    Event ||--o{ RSVP : has
-    DataSource ||--o{ ImportRun : logs
-```
+**Design Principles:**
+- Layered architecture: thin routes, fat CRUD
+- Middleware handles cross-cutting concerns (rate limiting, security headers, ETag)
+- Dual database support via Alembic (SQLite dev, PostgreSQL prod)
 
 ---
 
-## 6. Security Model
+## 5. Security Implementation Evidence
 
-| Threat | Mitigation | Implementation |
-|--------|------------|----------------|
-| Credential theft | PBKDF2-SHA256 hashing | `passlib` |
-| Token forgery | HS256 signed JWT | `python-jose` |
-| Privilege escalation | RBAC | `is_admin` flag; 403 on `/admin/*` |
-| DoS | Rate limiting | 120/min global, 10/min login |
-| Request correlation | Request ID | `X-Request-ID` on all responses |
-| Clickjacking | Security headers | `X-Frame-Options: DENY` |
-| MIME sniffing | Security headers | `X-Content-Type-Options: nosniff` |
-| Caching sensitive data | Cache-Control | `no-store` (default) |
-| Bandwidth waste | ETag caching | `If-None-Match` → 304 |
-| Error leakage | Sanitized 500s | Generic message + request_id only |
+| Security Measure | Implementation | File |
+|-----------------|----------------|------|
+| Password Hashing | PBKDF2-SHA256 | `app/core/auth.py` |
+| JWT Signing | HS256, 30-min expiry | `app/core/auth.py` |
+| RBAC | `is_admin` flag, 403 on `/admin/*` | `app/core/auth.py`, `app/api/admin.py` |
+| Rate Limiting | 120/min global, 10/min login | `app/core/rate_limit.py` |
+| Request Tracing | `X-Request-ID` on all responses | `app/core/middleware.py` |
+| Security Headers | nosniff, DENY, no-store/no-cache | `app/core/middleware.py` |
+| ETag Caching | SHA256 body hash, 304 support | `app/core/middleware.py` |
+| Error Sanitization | Generic 500 message, no stack trace | `app/core/middleware.py` |
 
 ---
 
-## 7. Design Decisions & Trade-offs
+## 6. Analytics Endpoints
 
-| Decision | Alternative | Trade-off | Justification |
-|----------|-------------|-----------|---------------|
-| In-memory rate limiting | Redis | Single-process only | Acceptable for coursework; documented limitation |
-| ETag via body hash | DB updated_at | Recalculates on each request | Simpler; no schema changes |
-| JWT (no refresh) | Refresh tokens | 30-min sessions | Simpler for coursework scope |
-| SQLite/Postgres dual | Postgres-only | Dev simplicity | Alembic handles dialect |
+| Endpoint | Computation | Use Case |
+|----------|-------------|----------|
+| `/analytics/events/seasonality` | COUNT(*) GROUP BY month | Identify peak event periods |
+| `/analytics/events/trending` | `(recent_rsvps × 1.5) + (total_rsvps × 0.5)` | Surface popular events |
+| `/events/recommendations` | Filter by user's past RSVP categories | Personalised discovery |
+
+**Evaluation:**
+- **Strengths:** Trending score balances recency with popularity; seasonality provides actionable insights for event planners.
+- **Limitations:** Recommendations are category-based only (no collaborative filtering); trending score is not normalised by event age.
+- **Trade-off Rationale:** Simpler algorithms chosen for coursework scope; documented as extensible via Redis caching and ML in production.
 
 ---
 
-## 8. Testing Strategy
+## 7. Testing Strategy
 
 | Category | Count | Coverage |
 |----------|-------|----------|
@@ -174,24 +120,40 @@ erDiagram
 | Error Handling | 1 | Sanitization |
 | **Total** | **39** | |
 
-Test isolation: In-memory SQLite with `StaticPool`; tables created/dropped per test.
+Test isolation: In-memory SQLite with `StaticPool`; tables created/dropped per test. Runtime: <1.5s.
+
+---
+
+## 8. Design Trade-offs
+
+| Decision | Alternative | Trade-off | Justification |
+|----------|-------------|-----------|---------------|
+| In-memory rate limiting | Redis | Single-process only | Acceptable for free-tier Render; documented as limitation |
+| ETag via body hash | DB `updated_at` | Recalculates per request | Simpler; no schema changes needed |
+| JWT without refresh | Refresh tokens | 30-min hard limit | Simpler for coursework; users re-login |
+| SQLite/Postgres dual | Postgres-only | Dev overhead | Alembic abstracts dialect; faster local iteration |
 
 ---
 
 ## 9. Deployment
 
-**Platform:** Render.com  
+**Platform:** Render.com [3]  
 **Database:** Managed PostgreSQL  
 **Config:** `render.yaml`  
-**Variables:** `DATABASE_URL`, `SECRET_KEY`, `ENVIRONMENT=prod`
+**Variables:** `DATABASE_URL`, `SECRET_KEY`, `ENVIRONMENT=prod`, `ALLOWED_ORIGINS`, `RATE_LIMIT_ENABLED`
+
+**Cold Start Note:** Free tier spins down after 15 min; first request may take 30–60s.
 
 ---
 
 ## 10. Version Control
 
-See GitHub commit history for incremental development evidence.
+Commit history available at: https://github.com/NathS04/comp3011-cw1-api/commits/main
 
-[Insert screenshot of commit history]
+Key commits demonstrate incremental development:
+- Feature additions (analytics, RBAC, ETag)
+- Bug fixes (middleware headers, rate limit format)
+- Test additions (39 total)
 
 ---
 
@@ -201,13 +163,13 @@ See GitHub commit history for incremental development evidence.
 
 **Creative Applications:**
 1. Compared RSVP storage approaches (embedded vs relational)
-2. Evaluated rate limiting options (in-memory vs Redis)
+2. Evaluated rate limiting options (in-memory vs Redis) [2]
 3. Researched ETag/If-None-Match RFC 7232 compliance
 
 **Failures Caught:**
-- Missing `requests` dependency
-- Placeholder test with `pass`
-- Deprecated `Query(regex=...)` syntax
+- Missing `requests` dependency → ModuleNotFoundError
+- Placeholder test with `pass` → False coverage
+- Deprecated `Query(regex=...)` → Warning
 
 Full logs: [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf)
 
@@ -215,20 +177,24 @@ Full logs: [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf)
 
 ## 12. Limitations & Future Work
 
-| Limitation | Fix |
-|------------|-----|
+| Limitation | Improvement |
+|------------|-------------|
 | No token refresh | Implement refresh tokens |
-| In-memory rate limiting | Redis-backed |
+| In-memory rate limiting | Redis-backed for horizontal scaling |
 | No CSP header | Add Content-Security-Policy |
+| Basic recommendations | Collaborative filtering with user embeddings |
 
 ---
 
 ## References
 
-[1] UK Government, "Open Government Licence v3.0"  
-[2] Auth0, "JWT Best Practices"  
-[3] MDN, "ETag" (RFC 7232)  
-[4] FastAPI Documentation  
+[1] Leeds City Council, "Temporary Event Notices," Data Mill North, https://datamillnorth.org/dataset/temporary-event-notices (Open Government Licence v3.0)
+
+[2] OWASP, "Rate Limiting," https://cheatsheetseries.owasp.org/cheatsheets/Denial_of_Service_Cheat_Sheet.html
+
+[3] Render, "Web Services Documentation," https://render.com/docs/web-services
+
+[4] IETF, "RFC 7232: HTTP/1.1 Conditional Requests," https://tools.ietf.org/html/rfc7232
 
 ---
 

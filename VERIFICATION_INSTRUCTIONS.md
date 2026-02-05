@@ -7,7 +7,7 @@
 ## 1. Prerequisites
 
 - Python 3.9+
-- `jq` (for JSON parsing in curl examples)
+- `jq` (optional, for JSON parsing)
 
 ---
 
@@ -24,7 +24,7 @@ pip install -r requirements.txt
 ## 3. Verify Imports
 
 ```bash
-python -c "import app.main; import requests; print('OK')"
+python3 -c "import app.main; import requests; print('OK')"
 # Expected: OK
 ```
 
@@ -44,7 +44,12 @@ pytest -q
 
 ## 5. Start Server
 
+> ⚠️ **Important:** Set environment variables BEFORE starting the server.
+
 ```bash
+export DATABASE_URL="sqlite:///./test.db"
+export SECRET_KEY="test"
+export RATE_LIMIT_ENABLED="true"
 uvicorn app.main:app --port 8000 &
 sleep 2
 ```
@@ -57,7 +62,7 @@ sleep 2
 curl -s http://127.0.0.1:8000/health | jq
 ```
 
-**Expected fields:** `status`, `database` ("ok"), `version`, `environment`, `commit`, `timestamp`
+**Expected fields:** `status` ("online"), `database` ("ok"), `version`, `environment`, `commit`, `timestamp`
 
 ---
 
@@ -67,11 +72,18 @@ curl -s http://127.0.0.1:8000/health | jq
 curl -si http://127.0.0.1:8000/health | head -15
 ```
 
-**Expected headers:**
+**Expected headers on non-GET or non-200 responses:**
 - `X-Request-ID: <uuid>`
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Cache-Control: no-store`
+
+**Expected headers on GET 200 responses (with ETag):**
+- `X-Request-ID: <uuid>`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Cache-Control: no-cache`
+- `ETag: "<hash>"`
 
 ---
 
@@ -87,16 +99,16 @@ curl -X POST http://127.0.0.1:8000/auth/register \
 TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
   -d "username=testuser&password=password123" | jq -r '.access_token')
 
-# Try admin endpoint
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports | jq
+# Try admin endpoint (should fail)
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
 ```
 
 **Expected:** `{"detail":"The user doesn't have enough privileges"}`
 
 ```bash
 # Promote to admin and retry
-python scripts/make_admin.py testuser
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports | jq
+python3 scripts/make_admin.py testuser
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
 ```
 
 **Expected:** `[]` or list of imports
@@ -105,24 +117,35 @@ curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports | 
 
 ## 9. Verify ETag + 304
 
+Use `/health` for a stable endpoint (body changes with timestamp, so use `/events` for best results):
+
 ```bash
-# First request
-ETAG=$(curl -si http://127.0.0.1:8000/events | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
+# Create an event first for stable content
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"etag_test","email":"etag@example.com","password":"password123"}' 2>/dev/null
+
+# First request - get ETag
+RESPONSE=$(curl -si http://127.0.0.1:8000/events)
+echo "$RESPONSE" | head -15
+ETAG=$(echo "$RESPONSE" | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
 echo "ETag: $ETAG"
 
-# Conditional request
+# Conditional request (same endpoint, no data change)
 curl -si -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events | head -10
 ```
 
-**Expected:** `HTTP/1.1 304 Not Modified` (no body)
+**Expected:** `HTTP/1.1 304 Not Modified` with:
+- `ETag` header (same value)
+- `X-Request-ID` header
+- `Cache-Control: no-cache`
+- No body
 
 ---
 
 ## 10. Verify Rate Limiting (429)
 
 ```bash
-export RATE_LIMIT_ENABLED=true
-
 # Flood login endpoint (limit: 10/min)
 for i in {1..12}; do
   CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8000/auth/login \
@@ -134,56 +157,43 @@ done
 **Expected:** First 10 return 401, then 429
 
 ```bash
-# Verify 429 includes request_id
-curl -s -X POST http://127.0.0.1:8000/auth/login -d "username=fake&password=fake" | jq
+# Verify 429 response format
+curl -s -X POST http://127.0.0.1:8000/auth/login -d "username=fake&password=fake"
 ```
 
 **Expected:** `{"detail":"Too Many Requests","request_id":"<uuid>"}`
 
 ---
 
-## 11. PDF Regeneration Checklist
+## 11. PDF Regeneration
 
 ### Option A: VS Code
 1. Install "Markdown PDF" extension
-2. Open `.md` file
+2. Open each `.md` file
 3. Cmd+Shift+P → "Markdown PDF: Export (pdf)"
 
 ### Option B: Pandoc
 ```bash
-pandoc README.md -o README.pdf
 pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf
 pandoc TECHNICAL_REPORT.md -o TECHNICAL_REPORT.pdf
 pandoc docs/GENAI_EXPORT_LOGS.md -o docs/GENAI_EXPORT_LOGS.pdf
 ```
 
-### Option C: Browser Print
-1. Open `.md` in GitHub or VS Code preview
-2. Print → Save as PDF
-
-### PDF Verification
-After regeneration, confirm:
-- Test count: 39
-- Tools: Gemini, Claude, ChatGPT
-- /health fields: status, database, version, environment, commit, timestamp
-
 ---
 
-## 12. Final QA Checklist
+## 12. Marker Sanity Checklist
 
-```bash
-# Check for stale test counts
-grep -r "35 test\|35 passed\|31 test" --include="*.md" .
-# Expected: No matches (except this example grep)
-
-# Confirm pytest
-pytest -q
-# Expected: 39 passed
-
-# Confirm all docs mention 39
-grep -r "39" --include="*.md" . | grep -i test
-# Should show consistent 39 across files
-```
+| Check | Command | Expected |
+|-------|---------|----------|
+| Tests pass | `pytest -q` | `39 passed` |
+| Import works | `python3 -c "import app.main"` | No error |
+| Health works | `curl /health` | JSON with `database: "ok"` |
+| RBAC enforced | `curl -H "Auth: Bearer $TOKEN" /admin/imports` | 403 for non-admin |
+| ETag present | `curl -si /events` | `ETag:` header |
+| 304 works | `curl -H "If-None-Match: $ETAG" /events` | 304 status |
+| 429 format | Flood `/auth/login` | `request_id` in JSON |
+| Headers present | Any response | `X-Request-ID`, `nosniff`, `DENY` |
+| No stale counts | `grep -r "35 passed" *.md` | No matches |
 
 ---
 

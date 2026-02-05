@@ -43,9 +43,10 @@ uvicorn app.main:app --reload
 
 **Live API:** https://comp3011-cw1-api.onrender.com
 
+> ⚠️ **Note:** Free tier spins down after 15 min inactivity. First request may take ~30–60s (cold start). If you see a 503, try again after 60 seconds.
+
 - `render.yaml` provisions managed PostgreSQL
 - Environment: `DATABASE_URL`, `SECRET_KEY`, `ENVIRONMENT=prod`
-- Free tier spins down after 15 min inactivity (first request ~30s)
 
 ---
 
@@ -54,9 +55,6 @@ uvicorn app.main:app --reload
 Integrates **Leeds City Council Temporary Event Notices** (XML).
 
 ```bash
-# Remote XML import
-python scripts/import_dataset.py --type xml
-
 # Via API (admin JWT required)
 curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
   -H "Authorization: Bearer $TOKEN"
@@ -104,7 +102,7 @@ pytest -v
 | GET | `/admin/imports` | List import runs | **Admin** |
 | GET | `/admin/dataset/meta` | Dataset metadata | **Admin** |
 
-> Non-admin users receive `403 Forbidden` on `/admin/*` endpoints.
+> **RBAC:** Non-admin users receive `{"detail":"The user doesn't have enough privileges"}` (403 Forbidden) on `/admin/*` endpoints.
 
 ---
 
@@ -113,13 +111,14 @@ pytest -v
 | Feature | Implementation |
 |---------|---------------|
 | **RBAC** | `is_admin` flag; `/admin/*` returns 403 for non-admin |
-| **Rate Limiting** | 120/min global, 10/min login → 429 with `request_id` in JSON |
+| **Rate Limiting** | 120/min global, 10/min login |
+| **429 Response** | `{"detail":"Too Many Requests","request_id":"<uuid>"}` |
 | **Request Tracing** | `X-Request-ID` header on **all** responses |
 | **Security Headers** | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` |
-| **Cache-Control** | `no-store` (default) or `no-cache` (ETag endpoints) |
+| **Cache-Control** | `no-store` (default) or `no-cache` (GET with ETag) |
 | **ETag Caching** | GET responses include ETag; `If-None-Match` → 304 Not Modified |
-| **Error Sanitization** | 500 errors return generic message + request_id (no stack traces) |
-| **CORS** | Configurable via `ALLOWED_ORIGINS`; permissive in dev, strict in prod |
+| **Error Sanitization** | 500 errors: `{"detail":"Internal Server Error","request_id":"<uuid>"}` |
+| **CORS** | Configurable via `ALLOWED_ORIGINS` |
 
 ---
 
