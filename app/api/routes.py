@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,7 @@ from ..schemas import (
     UserCreate, UserOut, Token,
 )
 from ..core import auth
+from ..core.config import settings
 from fastapi.security import OAuth2PasswordRequestForm
 import logging
 
@@ -56,12 +58,26 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = auth.create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/health")
-def health_check():
+@router.get("/health", tags=["system"])
+def health_check(db: Session = Depends(get_db)):
     """
-    Health check endpoint.
+    Health check with deployment metadata.
     """
-    return {"ok": True}
+    try:
+        # Check DB connection
+        db.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        db_status = "error"
+
+    return {
+        "status": "online",
+        "database": db_status,
+        "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT,
+        "commit": settings.GIT_SHA,
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 @router.post("/events", response_model=EventOut, status_code=status.HTTP_201_CREATED)
 def create_event(payload: EventCreate, db: Session = Depends(get_db), current_user: User = Depends(auth.get_current_user)):
