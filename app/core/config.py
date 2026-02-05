@@ -9,7 +9,8 @@ class Settings:
     VERSION = "1.0.0"
     
     # Environment (dev/prod)
-    ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
+    # Default to prod if on Render, else check ENVIRONMENT var, else dev
+    ENVIRONMENT = os.getenv("ENVIRONMENT") or ("prod" if os.getenv("RENDER") else "dev")
     
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
