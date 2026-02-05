@@ -1,6 +1,6 @@
 # EventHub API Documentation
 
-**Version:** 1.3.0  
+**Version:** 1.4.0  
 **Author:** Nathaniel Sebastian (sc232ns@leeds.ac.uk)  
 **Last Updated:** 5th February 2026  
 
@@ -64,38 +64,41 @@ HTTP status: `403 Forbidden`
 
 ## Response Headers
 
-**All responses include:**
+### Security Headers (All Responses)
+
+Every response includes these headers:
 
 | Header | Value |
 |--------|-------|
 | `X-Request-ID` | UUID v4 (for tracing) |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `no-referrer` |
+| `Permissions-Policy` | `geolocation=(), microphone=(), camera=()` |
+| `Cross-Origin-Resource-Policy` | `same-site` |
 
-**Cache-Control varies by response type:**
+### Cache-Control
 
 | Response Type | Cache-Control |
 |---------------|---------------|
-| GET 200 (with ETag) | `no-cache` |
+| GET 200 on `/events*` (with ETag) | `no-cache` |
 | All other responses | `no-store` |
 
-**GET 200 responses also include:**
+### ETag (Conditional GET)
 
-| Header | Value |
-|--------|-------|
-| `ETag` | `"<sha256-hash>"` |
+GET requests to `/events` and `/events/{id}` return an `ETag` header (SHA256 hash of response body).
 
-### Conditional GET (ETag)
-
+**Example Flow:**
 ```bash
 # First request
-curl -i http://127.0.0.1:8000/events
+curl -si http://127.0.0.1:8000/events
 # Response headers include: ETag: "abc123..."
 
 # Conditional request
-curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
-# Response: 304 Not Modified (no body)
+curl -si -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
+# Response: HTTP/1.1 304 Not Modified
 # Headers: ETag, X-Request-ID, Cache-Control: no-cache
+# Body: EMPTY (no content)
 ```
 
 ---
@@ -131,17 +134,22 @@ curl -H "If-None-Match: \"abc123...\"" http://127.0.0.1:8000/events
 {"detail": "The user doesn't have enough privileges"}
 ```
 
+**404 Not Found:**
+```json
+{"detail": "event not found"}
+```
+
 **429 Too Many Requests:**
 ```json
 {"detail": "Too Many Requests", "request_id": "550e8400-e29b-41d4-a716-446655440000"}
 ```
-Headers include: `X-Request-ID: 550e8400-e29b-41d4-a716-446655440000`
+Headers include: `X-Request-ID: 550e8400-e29b-41d4-a716-446655440000` (matches JSON)
 
 **500 Internal Server Error (sanitized):**
 ```json
 {"detail": "Internal Server Error", "request_id": "550e8400-e29b-41d4-a716-446655440000"}
 ```
-> Note: Stack traces and exception details are never exposed.
+> Note: Stack traces and exception details are never exposed. The `request_id` allows server-side log correlation.
 
 ---
 
@@ -152,6 +160,18 @@ Headers include: `X-Request-ID: 550e8400-e29b-41d4-a716-446655440000`
 GET /health
 ```
 Returns: `status` ("online"), `database` ("ok"/"error"), `version`, `environment`, `commit`, `timestamp`
+
+**Example Response:**
+```json
+{
+  "status": "online",
+  "database": "ok",
+  "version": "1.0.0",
+  "environment": "prod",
+  "commit": "abc1234",
+  "timestamp": "2026-02-05T10:30:00"
+}
+```
 
 ### Authentication
 ```
@@ -242,8 +262,24 @@ curl http://127.0.0.1:8000/analytics/events/trending
 ETAG=$(curl -si http://127.0.0.1:8000/events | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
 
 # Conditional request
-curl -i -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events
-# Returns 304 Not Modified
+curl -si -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events
+# Returns 304 Not Modified with empty body
+```
+
+### 7. Admin Endpoint (403 for non-admin)
+```bash
+# Non-admin user
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
+# Returns: {"detail":"The user doesn't have enough privileges"}
+
+# Promote to admin
+python3 scripts/make_admin.py alice
+
+# Re-login and retry
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
+  -d "username=alice&password=SecurePass123" | jq -r '.access_token')
+curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
+# Returns: [] or list of imports
 ```
 
 ---
@@ -256,7 +292,7 @@ python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-secret"
 alembic upgrade head
-pytest -q   # Expected: 39 passed
+pytest -q   # Expected: 41 passed
 uvicorn app.main:app --reload
 ```
 
@@ -266,6 +302,7 @@ uvicorn app.main:app --reload
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.4.0 | 2026-02-05 | Full security headers (Referrer-Policy, Permissions-Policy, CORP), 41 tests |
 | 1.3.0 | 2026-02-05 | ETag/304, security headers on all responses, 429 request_id |
 | 1.2.0 | 2026-02-05 | RBAC, rate limiting |
 | 1.1.0 | 2026-02-04 | Analytics endpoints |
