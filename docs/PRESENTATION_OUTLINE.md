@@ -44,12 +44,12 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 
 | Feature | Evidence |
 |---------|----------|
-| **39 tests passing** | `pytest -q` |
+| **41 tests passing** | `pytest -q` |
 | **RBAC** | `/admin/*` → 403 for non-admin |
-| **Rate limiting** | 429 with `request_id` |
-| **Security headers** | X-Request-ID, nosniff, DENY on all responses |
-| **ETag caching** | If-None-Match → 304 |
-| **Error sanitization** | 500s show generic message only |
+| **Rate limiting** | 120/min global, 10/min login → 429 with `request_id` |
+| **Security headers** | 6 headers on all responses (X-Request-ID, nosniff, DENY, Referrer, Permissions, CORP) |
+| **ETag caching** | If-None-Match → 304 empty body |
+| **Error sanitization** | 500s show generic message + request_id only |
 | **Provenance** | SHA256 hash in ImportRun |
 
 ---
@@ -57,8 +57,8 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 ## Slide 5: Novel Data Integration
 
 **Leeds City Council XML:**
-- Real-world parsing
-- SHA256 provenance
+- Real-world XML parsing
+- SHA256 provenance hashing
 - Idempotent imports
 
 **Analytics:**
@@ -75,22 +75,33 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 | RBAC | `is_admin` flag; 403 on admin routes |
 | Rate Limiting | 120/min global, 10/min login |
 | Request Tracing | X-Request-ID on all responses |
-| Headers | nosniff, DENY, no-store |
+| Security Headers | nosniff, DENY, Referrer-Policy, Permissions-Policy, CORP, no-store |
 | ETag | Conditional GET, 304 |
 | Error Sanitization | No stack traces |
 
 ---
 
-## Slide 7: Testing
+## Slide 7: Trade-offs
 
-**39 tests:** Auth, Events, RSVPs, Analytics, Admin, RBAC, Middleware, ETag, Errors
+| Decision | Trade-off |
+|----------|-----------|
+| In-memory rate limiting | Single-process (Redis for prod) |
+| ETag via body hash | Recomputes per request (vs DB timestamp) |
+| JWT without refresh | 30-min hard limit |
+| Sanitized 500s | Less debug info (but request_id for logs) |
+
+---
+
+## Slide 8: Testing
+
+**41 tests:** Auth, Events, RSVPs, Analytics, Admin, RBAC, Middleware, ETag, Headers, Errors
 
 - In-memory SQLite isolation
 - <1.5s runtime
 
 ---
 
-## Slide 8: Deliverables
+## Slide 9: Deliverables
 
 | Item | Location |
 |------|----------|
@@ -103,36 +114,36 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 
 ---
 
-## Slide 9: GenAI Usage
+## Slide 10: GenAI Usage
 
 **Tools:** Gemini, Claude, ChatGPT
 
 **Uses:** Architecture, debugging, security hardening
 
-**Failures Caught:** Missing dep, placeholder tests, deprecated syntax
+**Failures Caught:** Missing dep, placeholder tests, deprecated syntax, header flow
 
 ---
 
-## Slide 10: Viva Preparation
+## Slide 11: Viva Preparation
 
 | Question | Answer |
 |----------|--------|
 | **Why JWT?** | Stateless, no Redis needed, 30-min expiry |
-| **Why in-memory rate limit?** | Acceptable for coursework; Redis for prod |
-| **How does ETag work?** | SHA256 of body → If-None-Match → 304 |
+| **Why in-memory rate limit?** | Acceptable for coursework; Redis for horizontal scaling |
+| **How does ETag work?** | SHA256 of body → If-None-Match → 304 empty body |
 | **How is RBAC enforced?** | `is_admin` flag; `get_current_admin_user` dependency → 403 |
 | **How to promote admin?** | `python scripts/make_admin.py username` |
-| **Why X-Request-ID?** | Tracing; included in 500/429 JSON |
-| **How prevent error leakage?** | No `detail=str(e)`; middleware sanitizes |
+| **Why X-Request-ID?** | Tracing; included in 500/429 JSON for log correlation |
+| **How prevent error leakage?** | No `detail=str(e)`; middleware sanitizes, logs full trace server-side |
 | **Why this dataset?** | Real XML parsing, provenance, beyond CSV |
-| **What headers on 429?** | X-Request-ID, nosniff, DENY, no-store |
-| **How is 304 tested?** | `test_etags.py` asserts no body, ETag header |
-| **What AI got wrong?** | Missing `requests`, placeholder tests |
-| **What's the test count?** | 39 passed |
+| **What headers on 429?** | X-Request-ID, nosniff, DENY, Referrer-Policy, Permissions-Policy, CORP, no-store |
+| **How is 304 tested?** | `tests/test_etags.py` asserts empty body, ETag header present |
+| **What AI got wrong?** | Missing `requests`, placeholder tests, header ordering |
+| **What's the test count?** | 41 passed |
 
 ---
 
-## Slide 11: Thank You
+## Slide 12: Thank You
 
 **Questions?**
 
