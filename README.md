@@ -2,187 +2,194 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
-[![Tests](https://img.shields.io/badge/Tests-25%20passing-brightgreen.svg)](#running-tests)
+[![Tests](https://img.shields.io/badge/Tests-31%20passing-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A REST API for managing events, attendees, and RSVPs with **novel data integration** and **analytics features**. Built for COMP3011 Web Services coursework at the University of Leeds.
+A production-grade REST API for event management with **real-world data integration** from Leeds City Council and **intelligent analytics**. Built for COMP3011 Web Services coursework at the University of Leeds.
 
 ---
 
-## Quick Links
+## 📦 Submission Deliverables
 
-| Resource | Link |
-|----------|------|
-| **📂 GitHub Repo** | [github.com/NathS04/comp3011-cw1-api](https://github.com/NathS04/comp3011-cw1-api) |
-| **🔗 Live API** | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
-| **📖 Swagger UI** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) |
-| **📄 API Documentation** | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
-| **📝 Technical Report** | [TECHNICAL_REPORT.pdf](TECHNICAL_REPORT.pdf) |
-| **🎤 Presentation Slides** | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
-| **🤖 GenAI Logs** | [docs/GENAI_EXPORT_LOGS.md](docs/GENAI_EXPORT_LOGS.md) |
+| Document | Format | Path |
+|----------|--------|------|
+| **API Documentation** | PDF | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
+| **Technical Report** | PDF | [TECHNICAL_REPORT.pdf](TECHNICAL_REPORT.pdf) |
+| **Presentation Slides** | PPTX | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
+| **GenAI Logs** | PDF | [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf) |
 
-> **All deliverables are included in this repository.** PDF and PPTX files are ready for submission.
+> All deliverables are included in the repository root and `docs/` folder.
 
 ---
 
-## Features
-
-### Core Functionality
-- **JWT Authentication** – Secure token-based access for protected endpoints
-- **Full CRUD** – Create, read, update, delete for Events, Attendees, and RSVPs
-- **Pagination & Sorting** – `limit`, `offset`, and `sort` params with filtering
-- **RSVP Statistics** – Real-time counts of going/maybe/not_going
-
-### Novel Features (Outstanding-Level)
-- **📊 Data Integration** – Import external datasets with full provenance tracking
-- **📈 Seasonality Analytics** – Event distribution by month
-- **🔥 Trending Detection** – Score events by recent RSVP activity
-- **🎯 Recommendations** – Personalised event suggestions based on user history
-
----
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Framework | FastAPI |
-| Language | Python 3.11 |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| ORM | SQLAlchemy 2.x |
-| Migrations | Alembic |
-| Authentication | JWT (python-jose) |
-| Testing | pytest (25 tests) |
-| Deployment | Render.com |
-
----
-
-## Quick Start
+## 🚀 Quickstart (Local)
 
 ```bash
-# Clone and setup
-git clone https://github.com/NathS04/comp3011-cw1-api.git
-cd comp3011-cw1-api
+# 1. Clone & setup
+git clone https://github.com/NathS04/comp3011-cw1-api.git && cd comp3011-cw1-api
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# Configure
-export DATABASE_URL="sqlite:///./app.db"
-export SECRET_KEY="your-secret-key"
-
-# Run migrations and start
+# 2. Configure & run
+export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-key-change-me"
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-Access at: http://127.0.0.1:8000/docs
+Open: http://127.0.0.1:8000/docs
 
 ---
 
-## Running Tests
+## ☁️ Quickstart (Render Production)
+
+The API is deployed at: **https://comp3011-cw1-api.onrender.com**
+
+**Configuration:**
+- `render.yaml` provisions a managed PostgreSQL database
+- Environment variables: `DATABASE_URL`, `SECRET_KEY`, `ENVIRONMENT=prod`
+- Build command: `pip install -r requirements.txt && alembic upgrade head`
+
+**Known Limitation:** Free tier instances spin down after 15 minutes of inactivity. First request may take ~30 seconds.
+
+---
+
+## 📊 Dataset Import
+
+The system integrates real event data from **Leeds City Council Temporary Event Notices**.
+
+### Option 1: Remote XML (Recommended)
+```bash
+# Fetch and import latest data directly from Leeds Open Data
+python scripts/import_dataset.py --type xml
+
+# Or trigger via API (requires auth)
+curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Option 2: Local CSV
+```bash
+python scripts/import_dataset.py --type csv --url data/sample/dataset_sample.csv
+```
+
+**Provenance Features:**
+- SHA256 hash of source data stored for integrity verification
+- Import runs logged with timestamp, duration, and row counts
+- Idempotent: re-running updates existing records, doesn't duplicate
+
+**Verify Import:**
+```bash
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/dataset/meta
+```
+
+---
+
+## 🧪 Demo Script
+
+```bash
+# Health check
+curl http://127.0.0.1:8000/health
+# → {"ok": true}
+
+# Register user
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","email":"demo@test.com","password":"password123"}'
+
+# Login and capture token
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
+  -d "username=demo&password=password123" | jq -r '.access_token')
+
+# Create event
+curl -X POST http://127.0.0.1:8000/events \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Demo Event","location":"Leeds","start_time":"2026-03-01T10:00:00","end_time":"2026-03-01T12:00:00","capacity":50}'
+
+# Analytics
+curl http://127.0.0.1:8000/analytics/events/seasonality
+curl http://127.0.0.1:8000/analytics/events/trending
+```
+
+---
+
+## 🧪 Running Tests
 
 ```bash
 pytest -v
 ```
 
-**Result:** 25 tests passing (auth, events, attendees, RSVPs, analytics, health)
+**Result:** 31 tests passing (auth, events, attendees, RSVPs, analytics, admin, provenance)
 
 ---
 
-## API Endpoints Overview
+## 🔌 API Endpoints
 
-### Core Endpoints
-
+### Core CRUD
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/health` | Health check | No |
 | POST | `/auth/register` | Register user | No |
 | POST | `/auth/login` | Get JWT token | No |
-| GET/POST | `/events` | List/Create events | GET: No, POST: Yes |
-| GET/PATCH/DELETE | `/events/{id}` | Get/Update/Delete event | Yes for mutations |
+| GET/POST | `/events` | List/Create events | POST: Yes |
+| PATCH/DELETE | `/events/{id}` | Update/Delete event | Yes |
 | GET | `/events/{id}/stats` | RSVP statistics | No |
 | POST | `/attendees` | Create attendee | Yes |
 | POST | `/events/{id}/rsvps` | Create RSVP | Yes |
 
-### Analytics Endpoints (Novel Features)
-
+### Analytics (Novel Features)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/analytics/events/seasonality` | Monthly event distribution |
-| GET | `/analytics/events/trending` | Trending events by RSVP activity |
-| GET | `/events/recommendations` | Personalised suggestions |
+| GET | `/analytics/events/seasonality` | Monthly distribution with top locations |
+| GET | `/analytics/events/trending` | Trending score based on recent RSVPs |
+| GET | `/events/recommendations` | Personalised suggestions (auth required) |
 
-Full documentation: [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
+### Admin (Dataset Management)
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/admin/imports/run` | Trigger dataset import | Yes |
+| GET | `/admin/imports` | List recent import runs | Yes |
+| GET | `/admin/dataset/meta` | Current dataset metadata | Yes |
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 comp3011-cw1-api/
 ├── app/
 │   ├── api/
 │   │   ├── routes.py        # Core CRUD endpoints
-│   │   └── analytics.py     # Analytics & recommendations
-│   ├── core/
-│   │   ├── auth.py          # JWT authentication
-│   │   ├── config.py        # Environment config
-│   │   └── db.py            # Database session
-│   ├── main.py              # FastAPI app
-│   ├── models.py            # SQLAlchemy models (inc. DataSource, ImportRun)
-│   ├── schemas.py           # Pydantic schemas
-│   └── crud.py              # Business logic
+│   │   ├── analytics.py     # Analytics & recommendations
+│   │   └── admin.py         # Dataset import management
+│   ├── core/                # Auth, config, middleware
+│   ├── models.py            # SQLAlchemy models
+│   └── schemas.py           # Pydantic schemas
 ├── scripts/
-│   └── import_dataset.py    # Idempotent data import
-├── alembic/                 # Database migrations
-├── tests/                   # 25 test cases
-├── docs/
-│   ├── API_DOCUMENTATION.md
-│   └── appendix_genai_logs.md
-├── TECHNICAL_REPORT.md
-└── README.md
+│   ├── import_dataset.py    # XML/CSV import with provenance
+│   └── smoke_test.sh        # Deployment verification
+├── tests/                   # 31 test cases
+├── docs/                    # PDF/PPTX deliverables
+└── alembic/                 # Database migrations
 ```
 
 ---
 
-## Data Integration
+## 🛠 Tech Stack
 
-The system supports importing external event data with provenance tracking:
-
-```bash
-python scripts/import_dataset.py
-```
-
-**Features:**
-- Creates `DataSource` and `ImportRun` records
-- Idempotent: re-running won't duplicate data
-- Logs errors without stopping import
-- Tracks rows read, inserted, updated
+| Component | Technology |
+|-----------|------------|
+| Framework | FastAPI |
+| Database | PostgreSQL (prod) / SQLite (dev) |
+| ORM | SQLAlchemy 2.x |
+| Migrations | Alembic |
+| Auth | JWT (python-jose) |
+| Testing | pytest |
+| Deployment | Render.com |
 
 ---
 
-## Documentation for Submission
-
-| Document | Purpose | Format |
-|----------|---------|--------|
-| **API Documentation** | Full endpoint reference | [Markdown](docs/API_DOCUMENTATION.md) → Export to PDF |
-| **Technical Report** | Design decisions, architecture, GenAI reflection | [Markdown](TECHNICAL_REPORT.md) → Export to PDF |
-| **Presentation** | 5-min demo slides | [Outline](docs/PRESENTATION_OUTLINE.md) |
-| **GenAI Logs** | Conversation excerpts | [Appendix](docs/appendix_genai_logs.md) |
-
----
-
-## Deployment Verification
-
-```bash
-# Health check
-curl https://comp3011-cw1-api.onrender.com/health
-
-# Expected: {"ok": true}
-```
-
----
-
-## Author
+## 👤 Author
 
 **Nathaniel Sebastian**  
 sc232ns@leeds.ac.uk  
@@ -190,4 +197,4 @@ University of Leeds, School of Computing
 
 ---
 
-*Built with ❤️ and AI assistance for COMP3011 CW1*
+*Built with AI assistance for COMP3011 CW1 – See [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf) for full disclosure*

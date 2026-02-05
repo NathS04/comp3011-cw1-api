@@ -1,27 +1,8 @@
 # EventHub API Documentation
 
-**Version:** 1.1.0  
+**Version:** 1.2.0  
 **Author:** Nathaniel Sebastian (sc232ns@leeds.ac.uk)  
-**Last Updated:** 4th February 2026  
-
----
-
-## How to Generate PDF
-
-To export this documentation as a PDF (required for submission):
-
-**Option 1: Using Pandoc (Recommended)**
-```bash
-pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf --pdf-engine=xelatex
-```
-
-**Option 2: VS Code**
-1. Install "Markdown PDF" extension
-2. Open this file → Ctrl+Shift+P → "Markdown PDF: Export (pdf)"
-
-**Option 3: Browser**
-1. Open in any Markdown viewer
-2. Print to PDF (Ctrl+P → Save as PDF)
+**Last Updated:** 5th February 2026  
 
 ---
 
@@ -33,8 +14,9 @@ pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf --pdf-engine=xela
 4. [Attendees](#attendees)
 5. [RSVPs](#rsvps)
 6. [Analytics & Recommendations](#analytics--recommendations)
-7. [Error Handling](#error-response-format)
-8. [Running Locally](#running-locally)
+7. [Admin & Dataset Management](#admin--dataset-management)
+8. [Error Handling](#error-response-format)
+9. [Running Locally](#running-locally)
 
 ---
 
@@ -456,6 +438,89 @@ score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
 
 ---
 
+## Admin & Dataset Management
+
+These endpoints manage external data integration and are protected by authentication.
+
+### Trigger Dataset Import
+
+**Endpoint:** `POST /admin/imports/run`  
+**Auth Required:** Yes
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `source_type` | string | `xml` | `xml` (Leeds TEN) or `csv` (local file) |
+| `source_url` | string | Leeds XML URL | URL or file path to import |
+
+**Example Request:**
+```bash
+curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Success Response (201 Created):**
+```json
+{
+  "message": "Import finished successfully",
+  "source": "https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml"
+}
+```
+
+---
+
+### List Import Runs
+
+**Endpoint:** `GET /admin/imports`  
+**Auth Required:** Yes
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | 10 | Max results to return |
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "data_source_id": 1,
+    "status": "success",
+    "started_at": "2026-02-05T01:00:00Z",
+    "rows_inserted": 487,
+    "sha256_hash": "a3f2c4e5b6d7...",
+    "duration_ms": 2134
+  }
+]
+```
+
+---
+
+### Get Dataset Metadata
+
+**Endpoint:** `GET /admin/dataset/meta`  
+**Auth Required:** Yes
+
+**Success Response (200 OK):**
+```json
+{
+  "source_name": "Leeds Temporary Events",
+  "source_url": "https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml",
+  "last_import": "2026-02-05T01:00:00Z",
+  "rows_inserted": 487,
+  "sha256_hash": "a3f2c4e5b6d7..."
+}
+```
+
+**If No Data Imported:**
+```json
+{
+  "message": "No dataset imported yet"
+}
+```
+
+---
+
 ## Error Response Format
 
 All error responses follow a consistent format:
@@ -532,6 +597,8 @@ uvicorn app.main:app --reload
 ```bash
 pytest -v
 ```
+
+**Result:** 31 tests passing
 
 ---
 
