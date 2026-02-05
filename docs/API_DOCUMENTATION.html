@@ -1,285 +1,262 @@
-<!DOCTYPE html><html><head><title></title><meta charset="utf-8"><style>* {
-	box-sizing: border-box;
-}
-
-html {
-	font-size: 100%;
-}
-
-body {
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-		'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-	line-height: 1.6;
-	font-size: 0.6875em; /* 11 pt */
-	color: #111;
-	margin: 0;
-}
-
-body > :first-child {
-	padding-top: 0;
-	margin-top: 0;
-}
-
-body > :last-child {
-	margin-bottom: 0;
-	padding-bottom: 0;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin: 0;
-	padding: 0.5em 0 0.25em;
-}
-
-h5,
-h6 {
-	padding: 0;
-}
-
-h5 {
-	font-size: 1em;
-}
-
-h6 {
-	font-size: 0.875em;
-	text-transform: uppercase;
-}
-
-p {
-	margin: 0.25em 0 1em;
-}
-
-blockquote {
-	margin: 0.5em 0 1em;
-	padding-left: 0.5em;
-	padding-right: 1em;
-	border-left: 4px solid gainsboro;
-	font-style: italic;
-}
-
-ul,
-ol {
-	margin: 0;
-	margin-left: 1em;
-	padding: 0 1.5em 0.5em;
-}
-
-pre {
-	white-space: pre-wrap;
-}
-
-h1 code,
-h2 code,
-h3 code,
-h4 code,
-h5 code,
-h6 code,
-p code,
-li code,
-pre code {
-	background-color: #f8f8f8;
-	padding: 0.1em 0.375em;
-	border: 1px solid #f8f8f8;
-	border-radius: 0.25em;
-	font-family: monospace;
-	font-size: 1.2em;
-}
-
-pre code {
-	display: block;
-	padding: 0.5em;
-}
-
-.page-break {
-	page-break-after: always;
-}
-
-img {
-	max-width: 100%;
-	margin: 1em 0;
-}
-
-table {
-	border-spacing: 0;
-	border-collapse: collapse;
-	display: block;
-	margin: 0 0 1em;
-	width: 100%;
-	overflow: auto;
-}
-
-table th,
-table td {
-	padding: 0.5em 1em;
-	border: 1px solid gainsboro;
-}
-
-table th {
-	font-weight: 600;
-}
-
-table tr {
-	background-color: white;
-	border-top: 1px solid gainsboro;
-}
-
-table tr:nth-child(2n) {
-	background-color: whitesmoke;
-}
-/*# sourceURL=/Users/natha/.npm/_npx/55158e48eb5c59f7/node_modules/md-to-pdf/markdown.css*/</style><style>pre code.hljs {
-  display: block;
-  overflow-x: auto;
-  padding: 1em
-}
-code.hljs {
-  padding: 3px 5px
-}
-/*!
-  Theme: GitHub
-  Description: Light theme as seen on github.com
-  Author: github.com
-  Maintainer: @Hirse
-  Updated: 2021-05-15
-
-  Outdated base version: https://github.com/primer/github-syntax-light
-  Current colors taken from GitHub's CSS
-*/
-.hljs {
-  color: #24292e;
-  background: #ffffff
-}
-.hljs-doctag,
-.hljs-keyword,
-.hljs-meta .hljs-keyword,
-.hljs-template-tag,
-.hljs-template-variable,
-.hljs-type,
-.hljs-variable.language_ {
-  /* prettylights-syntax-keyword */
-  color: #d73a49
-}
-.hljs-title,
-.hljs-title.class_,
-.hljs-title.class_.inherited__,
-.hljs-title.function_ {
-  /* prettylights-syntax-entity */
-  color: #6f42c1
-}
-.hljs-attr,
-.hljs-attribute,
-.hljs-literal,
-.hljs-meta,
-.hljs-number,
-.hljs-operator,
-.hljs-variable,
-.hljs-selector-attr,
-.hljs-selector-class,
-.hljs-selector-id {
-  /* prettylights-syntax-constant */
-  color: #005cc5
-}
-.hljs-regexp,
-.hljs-string,
-.hljs-meta .hljs-string {
-  /* prettylights-syntax-string */
-  color: #032f62
-}
-.hljs-built_in,
-.hljs-symbol {
-  /* prettylights-syntax-variable */
-  color: #e36209
-}
-.hljs-comment,
-.hljs-code,
-.hljs-formula {
-  /* prettylights-syntax-comment */
-  color: #6a737d
-}
-.hljs-name,
-.hljs-quote,
-.hljs-selector-tag,
-.hljs-selector-pseudo {
-  /* prettylights-syntax-entity-tag */
-  color: #22863a
-}
-.hljs-subst {
-  /* prettylights-syntax-storage-modifier-import */
-  color: #24292e
-}
-.hljs-section {
-  /* prettylights-syntax-markup-heading */
-  color: #005cc5;
-  font-weight: bold
-}
-.hljs-bullet {
-  /* prettylights-syntax-markup-list */
-  color: #735c0f
-}
-.hljs-emphasis {
-  /* prettylights-syntax-markup-italic */
-  color: #24292e;
-  font-style: italic
-}
-.hljs-strong {
-  /* prettylights-syntax-markup-bold */
-  color: #24292e;
-  font-weight: bold
-}
-.hljs-addition {
-  /* prettylights-syntax-markup-inserted */
-  color: #22863a;
-  background-color: #f0fff4
-}
-.hljs-deletion {
-  /* prettylights-syntax-markup-deleted */
-  color: #b31d28;
-  background-color: #ffeef0
-}
-.hljs-char.escape_,
-.hljs-link,
-.hljs-params,
-.hljs-property,
-.hljs-punctuation,
-.hljs-tag {
-  /* purposely ignored */
-  
-}/*# sourceURL=/Users/natha/.npm/_npx/55158e48eb5c59f7/node_modules/highlight.js/styles/github.css*/</style></head>
-	<body class="">
-		<h1 id="eventhub-api-documentation">EventHub API Documentation</h1>
-<p><strong>Version:</strong> 1.1.0<br><strong>Author:</strong> Nathaniel Sebastian (<a href="mailto:sc232ns@leeds.ac.uk">sc232ns@leeds.ac.uk</a>)<br><strong>Last Updated:</strong> 4th February 2026  </p>
-<hr>
-<h2 id="how-to-generate-pdf">How to Generate PDF</h2>
-<p>To export this documentation as a PDF (required for submission):</p>
-<p><strong>Option 1: Using Pandoc (Recommended)</strong></p>
-<pre><code class="hljs bash">pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf --pdf-engine=xelatex
-</code></pre>
-<p><strong>Option 2: VS Code</strong></p>
-<ol>
-<li>Install "Markdown PDF" extension</li>
-<li>Open this file → Ctrl+Shift+P → "Markdown PDF: Export (pdf)"</li>
-</ol>
-<p><strong>Option 3: Browser</strong></p>
-<ol>
-<li>Open in any Markdown viewer</li>
-<li>Print to PDF (Ctrl+P → Save as PDF)</li>
-</ol>
-<hr>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>API_DOCUMENTATION</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="eventhub-api-documentation">EventHub API Documentation</h1>
+<p><strong>Version:</strong> 1.2.0<br />
+<strong>Author:</strong> Nathaniel Sebastian (sc232ns@leeds.ac.uk)<br />
+<strong>Last Updated:</strong> 5th February 2026</p>
+<hr />
 <h2 id="table-of-contents">Table of Contents</h2>
-<ol>
+<ol type="1">
 <li><a href="#base-urls">Base URLs</a></li>
 <li><a href="#authentication">Authentication</a></li>
 <li><a href="#events">Events</a></li>
 <li><a href="#attendees">Attendees</a></li>
 <li><a href="#rsvps">RSVPs</a></li>
-<li><a href="#analytics--recommendations">Analytics &amp; Recommendations</a></li>
+<li><a href="#analytics--recommendations">Analytics &amp;
+Recommendations</a></li>
+<li><a href="#admin--dataset-management">Admin &amp; Dataset
+Management</a></li>
 <li><a href="#error-response-format">Error Handling</a></li>
 <li><a href="#running-locally">Running Locally</a></li>
 </ol>
-<hr>
+<hr />
 <h2 id="base-urls">Base URLs</h2>
 <table>
 <thead>
@@ -288,7 +265,8 @@ code.hljs {
 <th>URL</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><strong>Production</strong></td>
 <td><code>https://comp3011-cw1-api.onrender.com</code></td>
 </tr>
@@ -296,84 +274,79 @@ code.hljs {
 <td><strong>Local Development</strong></td>
 <td><code>http://127.0.0.1:8000</code></td>
 </tr>
-</tbody></table>
-<p><strong>Interactive Documentation:</strong></p>
-<ul>
-<li>Swagger UI: <code>/docs</code></li>
-<li>ReDoc: <code>/redoc</code></li>
-</ul>
-<hr>
+</tbody>
+</table>
+<p><strong>Interactive Documentation:</strong> - Swagger UI:
+<code>/docs</code> - ReDoc: <code>/redoc</code></p>
+<hr />
 <h2 id="authentication">Authentication</h2>
-<p>Most endpoints that modify data (POST, PATCH, DELETE) require a valid JWT token. Read operations (GET) are generally public.</p>
+<p>Most endpoints that modify data (POST, PATCH, DELETE) require a valid
+JWT token. Read operations (GET) are generally public.</p>
 <h3 id="auth-flow-summary">Auth Flow Summary</h3>
 <pre><code>1. POST /auth/register  →  Create account
 2. POST /auth/login     →  Receive JWT token
-3. Include token in requests: Authorization: Bearer &lt;token&gt;
-</code></pre>
+3. Include token in requests: Authorization: Bearer &lt;token&gt;</code></pre>
 <h3 id="register-a-new-user">Register a New User</h3>
-<p><strong>Endpoint:</strong> <code>POST /auth/register</code><br><strong>Auth Required:</strong> No</p>
+<p><strong>Endpoint:</strong> <code>POST /auth/register</code><br />
+<strong>Auth Required:</strong> No</p>
 <p><strong>Request Body:</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"username"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"johndoe"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"john@example.com"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"password"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"mySecurePassword123"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;johndoe&quot;</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;mySecurePassword123&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p><strong>Success Response (201 Created):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"username"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"johndoe"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"john@example.com"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"created_at"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-02-04T12:30:00Z"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<p><strong>Error Responses:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>400 Bad Request</code></td>
-<td>Username or email already registered</td>
-</tr>
-<tr>
-<td><code>422 Unprocessable Entity</code></td>
-<td>Validation failed (e.g., password too short)</td>
-</tr>
-</tbody></table>
-<hr>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;johndoe&quot;</span><span class="fu">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-04T12:30:00Z&quot;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Error Responses:</strong> | Status | Meaning | |——–|———| |
+<code>400 Bad Request</code> | Username or email already registered | |
+<code>422 Unprocessable Entity</code> | Validation failed (e.g.,
+password too short) |</p>
+<hr />
 <h3 id="login">Login</h3>
-<p><strong>Endpoint:</strong> <code>POST /auth/login</code><br><strong>Auth Required:</strong> No<br><strong>Content-Type:</strong> <code>application/x-www-form-urlencoded</code></p>
+<p><strong>Endpoint:</strong> <code>POST /auth/login</code><br />
+<strong>Auth Required:</strong> No<br />
+<strong>Content-Type:</strong>
+<code>application/x-www-form-urlencoded</code></p>
 <p><strong>Request Body (Form Data):</strong></p>
 <pre><code>username=johndoe
-password=mySecurePassword123
-</code></pre>
+password=mySecurePassword123</code></pre>
 <p><strong>Success Response (200 OK):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"access_token"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"token_type"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"bearer"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;access_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;</span><span class="fu">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token_type&quot;</span><span class="fu">:</span> <span class="st">&quot;bearer&quot;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p><strong>Error Response (401 Unauthorized):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"detail"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Incorrect username or password"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;detail&quot;</span><span class="fu">:</span> <span class="st">&quot;Incorrect username or password&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
 <h3 id="using-the-token">Using the Token</h3>
-<p>Include the token in the <code>Authorization</code> header for all protected requests:</p>
-<pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-</code></pre>
+<p>Include the token in the <code>Authorization</code> header for all
+protected requests:</p>
+<pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
 <p><strong>Token Expiry:</strong> 30 minutes</p>
-<hr>
+<hr />
 <h2 id="events">Events</h2>
 <h3 id="list-events">List Events</h3>
-<p><strong>Endpoint:</strong> <code>GET /events</code><br><strong>Auth Required:</strong> No</p>
+<p><strong>Endpoint:</strong> <code>GET /events</code><br />
+<strong>Auth Required:</strong> No</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 15%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
 <thead>
 <tr>
 <th>Parameter</th>
@@ -382,7 +355,8 @@ password=mySecurePassword123
 <th>Example</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><code>limit</code></td>
 <td>integer</td>
 <td>Max results (default: 10, max: 100)</td>
@@ -436,269 +410,309 @@ password=mySecurePassword123
 <td><code>upcoming</code> or <code>past</code></td>
 <td><code>?status=upcoming</code></td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p><strong>Example Request:</strong></p>
-<pre><code>GET /events?limit=5&amp;sort=-start_time&amp;status=upcoming
-</code></pre>
+<pre><code>GET /events?limit=5&amp;sort=-start_time&amp;status=upcoming</code></pre>
 <p><strong>Success Response (200 OK):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-    <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Tech Meetup Leeds"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"description"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Monthly gathering for tech enthusiasts"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"location"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Leeds Digital Hub"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"start_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-03-15T18:00:00Z"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"end_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-03-15T21:00:00Z"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"capacity"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">50</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"created_at"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-02-01T10:00:00Z"</span>
-    <span class="hljs-punctuation">}</span>
-  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"total"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">42</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"limit"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"offset"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;items&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Tech Meetup Leeds&quot;</span><span class="fu">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Monthly gathering for tech enthusiasts&quot;</span><span class="fu">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Digital Hub&quot;</span><span class="fu">,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03-15T18:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;end_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03-15T21:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">50</span><span class="fu">,</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-01T10:00:00Z&quot;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="dv">42</span><span class="fu">,</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;offset&quot;</span><span class="fu">:</span> <span class="dv">0</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
 <h3 id="create-event">Create Event</h3>
-<p><strong>Endpoint:</strong> <code>POST /events</code><br><strong>Auth Required:</strong> Yes</p>
+<p><strong>Endpoint:</strong> <code>POST /events</code><br />
+<strong>Auth Required:</strong> Yes</p>
 <p><strong>Request Body:</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Freshers Welcome Social"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"description"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Welcome event for new students at Leeds University."</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"location"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Leeds Student Union, Riley Smith Hall"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"start_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-09-25T19:00:00Z"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"end_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-09-25T23:00:00Z"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"capacity"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">200</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<p><strong>Validation Rules:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Rules</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>title</code></td>
-<td>Required, 1–200 characters</td>
-</tr>
-<tr>
-<td><code>description</code></td>
-<td>Optional, max 1000 characters</td>
-</tr>
-<tr>
-<td><code>location</code></td>
-<td>Required, 1–200 characters</td>
-</tr>
-<tr>
-<td><code>start_time</code></td>
-<td>Required, ISO 8601 datetime</td>
-</tr>
-<tr>
-<td><code>end_time</code></td>
-<td>Required, must be after <code>start_time</code></td>
-</tr>
-<tr>
-<td><code>capacity</code></td>
-<td>Required, integer ≥ 1</td>
-</tr>
-</tbody></table>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Freshers Welcome Social&quot;</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Welcome event for new students at Leeds University.&quot;</span><span class="fu">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Student Union, Riley Smith Hall&quot;</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T19:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;end_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T23:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">200</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Validation Rules:</strong> | Field | Rules | |——-|——-| |
+<code>title</code> | Required, 1–200 characters | |
+<code>description</code> | Optional, max 1000 characters | |
+<code>location</code> | Required, 1–200 characters | |
+<code>start_time</code> | Required, ISO 8601 datetime | |
+<code>end_time</code> | Required, must be after <code>start_time</code>
+| | <code>capacity</code> | Required, integer ≥ 1 |</p>
 <p><strong>Success Response (201 Created):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Freshers Welcome Social"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"description"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Welcome event for new students at Leeds University."</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"location"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Leeds Student Union, Riley Smith Hall"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"start_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-09-25T19:00:00Z"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"end_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-09-25T23:00:00Z"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"capacity"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">200</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"created_at"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-02-04T14:00:00Z"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Freshers Welcome Social&quot;</span><span class="fu">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Welcome event for new students at Leeds University.&quot;</span><span class="fu">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Student Union, Riley Smith Hall&quot;</span><span class="fu">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T19:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;end_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-09-25T23:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">200</span><span class="fu">,</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-04T14:00:00Z&quot;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
 <h3 id="get-event-by-id">Get Event by ID</h3>
-<p><strong>Endpoint:</strong> <code>GET /events/{id}</code><br><strong>Auth Required:</strong> No</p>
-<p><strong>Success Response (200 OK):</strong> Returns single event object.</p>
-<p><strong>Error Response (404):</strong> <code>{"detail": "Event not found"}</code></p>
-<hr>
+<p><strong>Endpoint:</strong> <code>GET /events/{id}</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Success Response (200 OK):</strong> Returns single event
+object.</p>
+<p><strong>Error Response (404):</strong>
+<code>{"detail": "Event not found"}</code></p>
+<hr />
 <h3 id="update-event">Update Event</h3>
-<p><strong>Endpoint:</strong> <code>PATCH /events/{id}</code><br><strong>Auth Required:</strong> Yes</p>
+<p><strong>Endpoint:</strong> <code>PATCH /events/{id}</code><br />
+<strong>Auth Required:</strong> Yes</p>
 <p><strong>Request Body (partial update):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Tech Meetup Leeds 2026"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"capacity"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">75</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Tech Meetup Leeds 2026&quot;</span><span class="fu">,</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;capacity&quot;</span><span class="fu">:</span> <span class="dv">75</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Only include fields you want to update.</p>
-<hr>
+<hr />
 <h3 id="delete-event">Delete Event</h3>
-<p><strong>Endpoint:</strong> <code>DELETE /events/{id}</code><br><strong>Auth Required:</strong> Yes</p>
+<p><strong>Endpoint:</strong> <code>DELETE /events/{id}</code><br />
+<strong>Auth Required:</strong> Yes</p>
 <p><strong>Success Response:</strong> <code>204 No Content</code></p>
-<hr>
+<hr />
 <h3 id="get-event-statistics">Get Event Statistics</h3>
-<p><strong>Endpoint:</strong> <code>GET /events/{id}/stats</code><br><strong>Auth Required:</strong> No</p>
+<p><strong>Endpoint:</strong> <code>GET /events/{id}/stats</code><br />
+<strong>Auth Required:</strong> No</p>
 <p><strong>Success Response (200 OK):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"event_id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"going"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">35</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"maybe"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">10</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"not_going"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"remaining_capacity"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">15</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<p><strong>Formula:</strong> <code>remaining_capacity = capacity - going</code></p>
-<hr>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;going&quot;</span><span class="fu">:</span> <span class="dv">35</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;maybe&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;not_going&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;remaining_capacity&quot;</span><span class="fu">:</span> <span class="dv">15</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Formula:</strong>
+<code>remaining_capacity = capacity - going</code></p>
+<hr />
 <h2 id="attendees">Attendees</h2>
 <h3 id="create-attendee">Create Attendee</h3>
-<p><strong>Endpoint:</strong> <code>POST /attendees</code><br><strong>Auth Required:</strong> Yes</p>
+<p><strong>Endpoint:</strong> <code>POST /attendees</code><br />
+<strong>Auth Required:</strong> Yes</p>
 <p><strong>Request Body:</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"name"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Alice Smith"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"alice.smith@leeds.ac.uk"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice Smith&quot;</span><span class="fu">,</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;alice.smith@leeds.ac.uk&quot;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p><strong>Success Response (201 Created):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"name"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Alice Smith"</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"email"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"alice.smith@leeds.ac.uk"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<p><strong>Error:</strong> <code>409 Conflict</code> if email already registered.</p>
-<hr>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice Smith&quot;</span><span class="fu">,</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;alice.smith@leeds.ac.uk&quot;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Error:</strong> <code>409 Conflict</code> if email already
+registered.</p>
+<hr />
 <h3 id="get-attendee-by-id">Get Attendee by ID</h3>
-<p><strong>Endpoint:</strong> <code>GET /attendees/{id}</code><br><strong>Auth Required:</strong> No</p>
-<hr>
+<p><strong>Endpoint:</strong> <code>GET /attendees/{id}</code><br />
+<strong>Auth Required:</strong> No</p>
+<hr />
 <h3 id="get-events-for-attendee">Get Events for Attendee</h3>
-<p><strong>Endpoint:</strong> <code>GET /attendees/{id}/events</code><br><strong>Auth Required:</strong> No</p>
-<p>Returns all events the attendee has RSVP'd to.</p>
-<hr>
+<p><strong>Endpoint:</strong>
+<code>GET /attendees/{id}/events</code><br />
+<strong>Auth Required:</strong> No</p>
+<p>Returns all events the attendee has RSVP’d to.</p>
+<hr />
 <h2 id="rsvps">RSVPs</h2>
 <h3 id="create-rsvp">Create RSVP</h3>
-<p><strong>Endpoint:</strong> <code>POST /events/{event_id}/rsvps</code><br><strong>Auth Required:</strong> Yes</p>
+<p><strong>Endpoint:</strong>
+<code>POST /events/{event_id}/rsvps</code><br />
+<strong>Auth Required:</strong> Yes</p>
 <p><strong>Request Body:</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"attendee_id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"status"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"going"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<p><strong>Valid status values:</strong> <code>going</code>, <code>maybe</code>, <code>not_going</code></p>
-<p><strong>Error Responses:</strong></p>
-<ul>
-<li><code>404</code> – Event or attendee not found</li>
-<li><code>409</code> – Duplicate RSVP (attendee already RSVP'd to this event)</li>
-</ul>
-<hr>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;attendee_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;going&quot;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Valid status values:</strong> <code>going</code>,
+<code>maybe</code>, <code>not_going</code></p>
+<p><strong>Error Responses:</strong> - <code>404</code> – Event or
+attendee not found - <code>409</code> – Duplicate RSVP (attendee already
+RSVP’d to this event)</p>
+<hr />
 <h3 id="list-rsvps-for-event">List RSVPs for Event</h3>
-<p><strong>Endpoint:</strong> <code>GET /events/{event_id}/rsvps</code><br><strong>Auth Required:</strong> No</p>
-<hr>
+<p><strong>Endpoint:</strong>
+<code>GET /events/{event_id}/rsvps</code><br />
+<strong>Auth Required:</strong> No</p>
+<hr />
 <h3 id="delete-rsvp">Delete RSVP</h3>
-<p><strong>Endpoint:</strong> <code>DELETE /events/{event_id}/rsvps/{rsvp_id}</code><br><strong>Auth Required:</strong> Yes</p>
-<hr>
-<h2 id="analytics--recommendations">Analytics &amp; Recommendations</h2>
-<p>These endpoints provide derived insights beyond basic CRUD operations.</p>
+<p><strong>Endpoint:</strong>
+<code>DELETE /events/{event_id}/rsvps/{rsvp_id}</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<hr />
+<h2 id="analytics-recommendations">Analytics &amp; Recommendations</h2>
+<p>These endpoints provide derived insights beyond basic CRUD
+operations.</p>
 <h3 id="event-seasonality">Event Seasonality</h3>
-<p><strong>Endpoint:</strong> <code>GET /analytics/events/seasonality</code><br><strong>Auth Required:</strong> No<br><strong>Purpose:</strong> Aggregate events by month to identify seasonal patterns.</p>
+<p><strong>Endpoint:</strong>
+<code>GET /analytics/events/seasonality</code><br />
+<strong>Auth Required:</strong> No<br />
+<strong>Purpose:</strong> Aggregate events by month to identify seasonal
+patterns.</p>
 <p><strong>Success Response (200 OK):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"items"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-    <span class="hljs-punctuation">{</span><span class="hljs-attr">"month"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-01"</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"count"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"top_categories"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">"General"</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-punctuation">{</span><span class="hljs-attr">"month"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-02"</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"count"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">12</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"top_categories"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">"General"</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-punctuation">{</span><span class="hljs-attr">"month"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-03"</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"count"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">8</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">"top_categories"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">"General"</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">}</span>
-  <span class="hljs-punctuation">]</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;items&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span><span class="dt">&quot;month&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-01&quot;</span><span class="fu">,</span> <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">5</span><span class="fu">,</span> <span class="dt">&quot;top_categories&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;General&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span><span class="dt">&quot;month&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02&quot;</span><span class="fu">,</span> <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">12</span><span class="fu">,</span> <span class="dt">&quot;top_categories&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;General&quot;</span><span class="ot">]</span><span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span><span class="dt">&quot;month&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03&quot;</span><span class="fu">,</span> <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span> <span class="dt">&quot;top_categories&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;General&quot;</span><span class="ot">]</span><span class="fu">}</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
 <h3 id="trending-events">Trending Events</h3>
-<p><strong>Endpoint:</strong> <code>GET /analytics/events/trending</code><br><strong>Auth Required:</strong> No</p>
-<p><strong>Query Parameters:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>window_days</code></td>
-<td>integer</td>
-<td>30</td>
-<td>Days to consider for "recent" RSVPs</td>
-</tr>
-<tr>
-<td><code>limit</code></td>
-<td>integer</td>
-<td>5</td>
-<td>Max events to return</td>
-</tr>
-</tbody></table>
+<p><strong>Endpoint:</strong>
+<code>GET /analytics/events/trending</code><br />
+<strong>Auth Required:</strong> No</p>
+<p><strong>Query Parameters:</strong> | Parameter | Type | Default |
+Description | |———–|——|———|————-| | <code>window_days</code> | integer |
+30 | Days to consider for “recent” RSVPs | | <code>limit</code> |
+integer | 5 | Max events to return |</p>
 <p><strong>Trending Score Formula:</strong></p>
-<pre><code>score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)
-</code></pre>
+<pre><code>score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)</code></pre>
 <p><strong>Success Response (200 OK):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">[</span>
-  <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">"event_id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"AI Workshop"</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-attr">"trending_score"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">15.5</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-attr">"recent_rsvps"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">8</span>
-  <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-punctuation">{</span>
-    <span class="hljs-attr">"event_id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">7</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Networking Night"</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-attr">"trending_score"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">12.0</span><span class="hljs-punctuation">,</span>
-    <span class="hljs-attr">"recent_rsvps"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">6</span>
-  <span class="hljs-punctuation">}</span>
-<span class="hljs-punctuation">]</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;AI Workshop&quot;</span><span class="fu">,</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;trending_score&quot;</span><span class="fu">:</span> <span class="fl">15.5</span><span class="fu">,</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;recent_rsvps&quot;</span><span class="fu">:</span> <span class="dv">8</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">7</span><span class="fu">,</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Networking Night&quot;</span><span class="fu">,</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;trending_score&quot;</span><span class="fu">:</span> <span class="fl">12.0</span><span class="fu">,</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;recent_rsvps&quot;</span><span class="fu">:</span> <span class="dv">6</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<hr />
 <h3 id="personalised-recommendations">Personalised Recommendations</h3>
-<p><strong>Endpoint:</strong> <code>GET /events/recommendations</code><br><strong>Auth Required:</strong> Yes<br><strong>Purpose:</strong> Suggest upcoming events based on user's RSVP history.</p>
-<p><strong>Algorithm:</strong></p>
-<ol>
-<li>Find attendee record matching the authenticated user's email.</li>
-<li>Identify locations the user has previously attended.</li>
-<li>Recommend future events at those locations.</li>
-<li>Cold start: If no history, return top upcoming events.</li>
-</ol>
+<p><strong>Endpoint:</strong>
+<code>GET /events/recommendations</code><br />
+<strong>Auth Required:</strong> Yes<br />
+<strong>Purpose:</strong> Suggest upcoming events based on user’s RSVP
+history.</p>
+<p><strong>Algorithm:</strong> 1. Find attendee record matching the
+authenticated user’s email. 2. Identify locations the user has
+previously attended. 3. Recommend future events at those locations. 4.
+Cold start: If no history, return top upcoming events.</p>
 <p><strong>Success Response (200 OK):</strong></p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"recommendations"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-    <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"event_id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">12</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"title"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Python Meetup"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"score"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.9</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"reason"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Based on your interest in Leeds Digital Hub"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"location"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Leeds Digital Hub"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"start_time"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"2026-03-20T18:00:00Z"</span>
-    <span class="hljs-punctuation">}</span>
-  <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">"user_id"</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;recommendations&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;event_id&quot;</span><span class="fu">:</span> <span class="dv">12</span><span class="fu">,</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;title&quot;</span><span class="fu">:</span> <span class="st">&quot;Python Meetup&quot;</span><span class="fu">,</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;score&quot;</span><span class="fu">:</span> <span class="fl">0.9</span><span class="fu">,</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;reason&quot;</span><span class="fu">:</span> <span class="st">&quot;Based on your interest in Leeds Digital Hub&quot;</span><span class="fu">,</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Digital Hub&quot;</span><span class="fu">,</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;start_time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-03-20T18:00:00Z&quot;</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">5</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 id="admin-dataset-management">Admin &amp; Dataset Management</h2>
+<p>These endpoints manage external data integration and are protected by
+authentication.</p>
+<h3 id="trigger-dataset-import">Trigger Dataset Import</h3>
+<p><strong>Endpoint:</strong> <code>POST /admin/imports/run</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Query Parameters:</strong> | Parameter | Type | Default |
+Description | |———–|——|———|————-| | <code>source_type</code> | string |
+<code>xml</code> | <code>xml</code> (Leeds TEN) or <code>csv</code>
+(local file) | | <code>source_url</code> | string | Leeds XML URL | URL
+or file path to import |</p>
+<p><strong>Example Request:</strong></p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST <span class="st">&quot;http://127.0.0.1:8000/admin/imports/run?source_type=xml&quot;</span> <span class="dt">\</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span></span></code></pre></div>
+<p><strong>Success Response (201 Created):</strong></p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Import finished successfully&quot;</span><span class="fu">,</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;source&quot;</span><span class="fu">:</span> <span class="st">&quot;https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml&quot;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="list-import-runs">List Import Runs</h3>
+<p><strong>Endpoint:</strong> <code>GET /admin/imports</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Query Parameters:</strong> | Parameter | Type | Default |
+Description | |———–|——|———|————-| | <code>limit</code> | integer | 10 |
+Max results to return |</p>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;data_source_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;success&quot;</span><span class="fu">,</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;started_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-05T01:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;rows_inserted&quot;</span><span class="fu">:</span> <span class="dv">487</span><span class="fu">,</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;sha256_hash&quot;</span><span class="fu">:</span> <span class="st">&quot;a3f2c4e5b6d7...&quot;</span><span class="fu">,</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;duration_ms&quot;</span><span class="fu">:</span> <span class="dv">2134</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<hr />
+<h3 id="get-dataset-metadata">Get Dataset Metadata</h3>
+<p><strong>Endpoint:</strong> <code>GET /admin/dataset/meta</code><br />
+<strong>Auth Required:</strong> Yes</p>
+<p><strong>Success Response (200 OK):</strong></p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;source_name&quot;</span><span class="fu">:</span> <span class="st">&quot;Leeds Temporary Events&quot;</span><span class="fu">,</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;source_url&quot;</span><span class="fu">:</span> <span class="st">&quot;https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml&quot;</span><span class="fu">,</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;last_import&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-02-05T01:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rows_inserted&quot;</span><span class="fu">:</span> <span class="dv">487</span><span class="fu">,</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sha256_hash&quot;</span><span class="fu">:</span> <span class="st">&quot;a3f2c4e5b6d7...&quot;</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>If No Data Imported:</strong></p>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;No dataset imported yet&quot;</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
 <h2 id="error-response-format">Error Response Format</h2>
 <p>All error responses follow a consistent format:</p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"detail"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Human-readable error message"</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;detail&quot;</span><span class="fu">:</span> <span class="st">&quot;Human-readable error message&quot;</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>For validation errors (422):</p>
-<pre><code class="hljs json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">"detail"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
-    <span class="hljs-punctuation">{</span>
-      <span class="hljs-attr">"loc"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">"body"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"capacity"</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"msg"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"Input should be greater than or equal to 1"</span><span class="hljs-punctuation">,</span>
-      <span class="hljs-attr">"type"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"greater_than_equal"</span>
-    <span class="hljs-punctuation">}</span>
-  <span class="hljs-punctuation">]</span>
-<span class="hljs-punctuation">}</span>
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;detail&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;loc&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;body&quot;</span><span class="ot">,</span> <span class="st">&quot;capacity&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;msg&quot;</span><span class="fu">:</span> <span class="st">&quot;Input should be greater than or equal to 1&quot;</span><span class="fu">,</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;greater_than_equal&quot;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
 <h2 id="http-status-codes-summary">HTTP Status Codes Summary</h2>
 <table>
 <thead>
@@ -708,7 +722,8 @@ password=mySecurePassword123
 <th>When Used</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><code>200</code></td>
 <td>OK</td>
 <td>Successful GET, PATCH</td>
@@ -736,7 +751,7 @@ password=mySecurePassword123
 <tr>
 <td><code>404</code></td>
 <td>Not Found</td>
-<td>Resource doesn't exist</td>
+<td>Resource doesn’t exist</td>
 </tr>
 <tr>
 <td><code>409</code></td>
@@ -753,8 +768,9 @@ password=mySecurePassword123
 <td>Internal Server Error</td>
 <td>Unexpected error</td>
 </tr>
-</tbody></table>
-<hr>
+</tbody>
+</table>
+<hr />
 <h2 id="running-locally">Running Locally</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
@@ -762,57 +778,58 @@ password=mySecurePassword123
 <li>pip</li>
 </ul>
 <h3 id="setup">Setup</h3>
-<pre><code class="hljs bash"><span class="hljs-comment"># Clone repository</span>
-git <span class="hljs-built_in">clone</span> https://github.com/NathS04/comp3011-cw1-api.git
-<span class="hljs-built_in">cd</span> comp3011-cw1-api
-
-<span class="hljs-comment"># Create virtual environment</span>
-python -m venv venv
-<span class="hljs-built_in">source</span> venv/bin/activate  <span class="hljs-comment"># Windows: venv\Scripts\activate</span>
-
-<span class="hljs-comment"># Install dependencies</span>
-pip install -r requirements.txt
-
-<span class="hljs-comment"># Set environment variables</span>
-<span class="hljs-built_in">export</span> DATABASE_URL=<span class="hljs-string">"sqlite:///./app.db"</span>
-<span class="hljs-built_in">export</span> SECRET_KEY=<span class="hljs-string">"your-secret-key"</span>
-
-<span class="hljs-comment"># Run migrations</span>
-alembic upgrade <span class="hljs-built_in">head</span>
-
-<span class="hljs-comment"># Start server</span>
-uvicorn app.main:app --reload
-</code></pre>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clone repository</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/NathS04/comp3011-cw1-api.git</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> comp3011-cw1-api</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create virtual environment</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv venv</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> venv/bin/activate  <span class="co"># Windows: venv\Scripts\activate</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Set environment variables</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">DATABASE_URL</span><span class="op">=</span><span class="st">&quot;sqlite:///./app.db&quot;</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">SECRET_KEY</span><span class="op">=</span><span class="st">&quot;your-secret-key&quot;</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Run migrations</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="ex">alembic</span> upgrade head</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Start server</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="ex">uvicorn</span> app.main:app <span class="at">--reload</span></span></code></pre></div>
 <h3 id="running-tests">Running Tests</h3>
-<pre><code class="hljs bash">pytest -v
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-v</span></span></code></pre></div>
+<p><strong>Result:</strong> 31 tests passing</p>
+<hr />
 <h2 id="demo-script-curl">Demo Script (cURL)</h2>
-<pre><code class="hljs bash"><span class="hljs-comment"># 1. Health check</span>
-curl http://127.0.0.1:8000/health
-
-<span class="hljs-comment"># 2. Register</span>
-curl -X POST http://127.0.0.1:8000/auth/register \
-  -H <span class="hljs-string">"Content-Type: application/json"</span> \
-  -d <span class="hljs-string">'{"username":"demo","email":"demo@test.com","password":"password123"}'</span>
-
-<span class="hljs-comment"># 3. Login</span>
-TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
-  -d <span class="hljs-string">"username=demo&amp;password=password123"</span> | jq -r <span class="hljs-string">'.access_token'</span>)
-
-<span class="hljs-comment"># 4. Create event</span>
-curl -X POST http://127.0.0.1:8000/events \
-  -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$TOKEN</span>"</span> \
-  -H <span class="hljs-string">"Content-Type: application/json"</span> \
-  -d <span class="hljs-string">'{"title":"Demo Event","location":"Leeds","start_time":"2026-03-01T10:00:00","end_time":"2026-03-01T12:00:00","capacity":50}'</span>
-
-<span class="hljs-comment"># 5. Get trending</span>
-curl http://127.0.0.1:8000/analytics/events/trending
-
-<span class="hljs-comment"># 6. Get recommendations</span>
-curl -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-variable">$TOKEN</span>"</span> http://127.0.0.1:8000/events/recommendations
-</code></pre>
-<hr>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Health check</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/health</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Register</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://127.0.0.1:8000/auth/register <span class="dt">\</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;demo&quot;,&quot;email&quot;:&quot;demo@test.com&quot;,&quot;password&quot;:&quot;password123&quot;}&#39;</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Login</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="va">TOKEN</span><span class="op">=</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:8000/auth/login <span class="dt">\</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&quot;username=demo&amp;password=password123&quot;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.access_token&#39;</span><span class="va">)</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Create event</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://127.0.0.1:8000/events <span class="dt">\</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;title&quot;:&quot;Demo Event&quot;,&quot;location&quot;:&quot;Leeds&quot;,&quot;start_time&quot;:&quot;2026-03-01T10:00:00&quot;,&quot;end_time&quot;:&quot;2026-03-01T12:00:00&quot;,&quot;capacity&quot;:50}&#39;</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Get trending</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/analytics/events/trending</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Get recommendations</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> http://127.0.0.1:8000/events/recommendations</span></code></pre></div>
+<hr />
 <h2 id="changelog">Changelog</h2>
 <table>
 <thead>
@@ -822,7 +839,8 @@ curl -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-varia
 <th>Changes</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>1.1.0</td>
 <td>2026-02-04</td>
 <td>Added analytics and recommendations endpoints</td>
@@ -832,10 +850,9 @@ curl -H <span class="hljs-string">"Authorization: Bearer <span class="hljs-varia
 <td>2026-02-01</td>
 <td>Initial release</td>
 </tr>
-</tbody></table>
-<hr>
+</tbody>
+</table>
+<hr />
 <p><em>Document generated for COMP3011 CW1 submission</em></p>
-
-	
-
-</body></html>
+</body>
+</html>

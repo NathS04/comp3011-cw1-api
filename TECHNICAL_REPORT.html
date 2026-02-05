@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Technical Report</title>
+  <title>TECHNICAL_REPORT</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -237,192 +237,353 @@
   </style>
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">Technical Report</h1>
-</header>
 <h1 id="comp3011-technical-report-eventhub-api">COMP3011 Technical
 Report: EventHub API</h1>
 <p><strong>Module:</strong> COMP3011 – Web Services and Web Data<br />
 <strong>Student:</strong> Nathaniel Sebastian (sc232ns)<br />
-<strong>Date:</strong> 4th February 2026<br />
+<strong>Date:</strong> 5th February 2026<br />
 <strong>GitHub:</strong> <a
 href="https://github.com/NathS04/comp3011-cw1-api">github.com/NathS04/comp3011-cw1-api</a><br />
 <strong>Live API:</strong> <a
 href="https://comp3011-cw1-api.onrender.com">comp3011-cw1-api.onrender.com</a></p>
 <hr />
-<h2 id="introduction">1. Introduction</h2>
-<p>EventHub is a RESTful API for event registration management, designed
-for university societies and community organisations. It provides CRUD
-operations for events, attendees, and RSVPs, plus analytics endpoints
-for insights.</p>
-<p><strong>Key Features:</strong> - JWT authentication for secure write
-operations - Data provenance tracking for external dataset imports -
-Analytics: seasonality, trending, and personalised recommendations - 25
-automated tests with full coverage</p>
+<h2 id="problem-framing-dataset-choice">1. Problem Framing &amp; Dataset
+Choice</h2>
+<p><strong>Problem:</strong> University societies and community groups
+need a lightweight system to manage event registration without relying
+on commercial platforms like Eventbrite.</p>
+<p><strong>Dataset:</strong> I chose the <strong>Leeds City Council
+Temporary Event Notices</strong> (published via Data Mill North /
+data.gov.uk) because: - <strong>Real and verifiable</strong>: Live XML
+feed maintained by the council - <strong>Domain-relevant</strong>:
+Contains event titles, locations, dates, and licensing activities -
+<strong>Demonstrates XML parsing</strong>: Shows capability beyond
+simple CSV ingestion - <strong>Open licence</strong>: OGL v3.0 permits
+reuse with attribution</p>
+<p><strong>Source:</strong>
+<code>https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml</code></p>
 <hr />
-<h2 id="technology-stack">2. Technology Stack</h2>
+<h2 id="architecture">2. Architecture</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                        HTTP Client                               │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  FastAPI Application                                             │
+│  ┌───────────┬────────────┬──────────────┬──────────────┐       │
+│  │ routes.py │ analytics.py│   admin.py   │ middleware   │       │
+│  └───────────┴────────────┴──────────────┴──────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Business Logic Layer (crud.py)                                  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  SQLAlchemy ORM (models.py)                                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Database: SQLite (dev) / PostgreSQL (prod via Render)          │
+└─────────────────────────────────────────────────────────────────┘</code></pre>
+<p><strong>Design Principle:</strong> Routes are thin handlers; complex
+logic resides in <code>crud.py</code> for testability and separation of
+concerns.</p>
+<hr />
+<h2 id="data-model-invariants">3. Data Model &amp; Invariants</h2>
 <table>
-<colgroup>
-<col style="width: 36%" />
-<col style="width: 26%" />
-<col style="width: 36%" />
-</colgroup>
 <thead>
 <tr>
-<th>Component</th>
-<th>Choice</th>
-<th>Rationale</th>
+<th>Table</th>
+<th>Purpose</th>
+<th>Key Constraints</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Framework</strong></td>
-<td>FastAPI</td>
-<td>Async support, automatic OpenAPI docs, Pydantic integration</td>
+<td><code>users</code></td>
+<td>System accounts</td>
+<td>Unique username, unique email</td>
 </tr>
 <tr>
-<td><strong>Database</strong></td>
-<td>SQLite/PostgreSQL</td>
-<td>Zero-config dev, production-ready via <code>DATABASE_URL</code></td>
+<td><code>events</code></td>
+<td>Event records</td>
+<td><code>end_time &gt; start_time</code>,
+<code>capacity &gt;= 1</code></td>
 </tr>
 <tr>
-<td><strong>ORM</strong></td>
-<td>SQLAlchemy 2.x</td>
-<td>Industry standard, relationship support, migrations</td>
+<td><code>attendees</code></td>
+<td>RSVP contacts</td>
+<td>Unique email</td>
 </tr>
 <tr>
-<td><strong>Migrations</strong></td>
-<td>Alembic</td>
-<td>Version-controlled schema changes</td>
+<td><code>rsvps</code></td>
+<td>Event-attendee links</td>
+<td>Unique (event_id, attendee_id) pair</td>
 </tr>
 <tr>
-<td><strong>Auth</strong></td>
-<td>JWT (python-jose)</td>
-<td>Stateless, fits REST principles</td>
+<td><code>data_sources</code></td>
+<td>External data registry</td>
+<td>Unique name</td>
 </tr>
 <tr>
-<td><strong>Testing</strong></td>
-<td>pytest</td>
-<td>Isolated in-memory DB with StaticPool</td>
+<td><code>import_runs</code></td>
+<td>Import execution logs</td>
+<td>FK to data_sources</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Provenance Fields (on events):</strong> -
+<code>source_id</code> → Links to originating data source -
+<code>source_record_id</code> → Original ID from external system (e.g.,
+<code>TEN/00784/22/12</code>)</p>
 <hr />
-<h2 id="architecture">3. Architecture</h2>
-<p>The system uses a layered architecture:</p>
-<pre><code>HTTP Client → FastAPI app → Routes → CRUD → Models → Database</code></pre>
-<p><strong>Design Principle:</strong> Routes are thin handlers; business
-logic lives in <code>crud.py</code> for testability.</p>
+<h2 id="dataset-ingestion-pipeline">4. Dataset Ingestion Pipeline</h2>
+<p><strong>Implementation:</strong>
+<code>scripts/import_dataset.py</code></p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Fetch XML from remote URL or read local CSV</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Compute SHA256 hash of raw content</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Create <code>DataSource</code> record (or retrieve existing)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Create <code>ImportRun</code> with status=“running”</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Parse each record, validate, upsert into events</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Finalise ImportRun with counts and duration</td>
+</tr>
+</tbody>
+</table>
+<p><strong>XML Parsing Strategy:</strong> - Use
+<code>xml.etree.ElementTree</code> for lightweight parsing - Handle
+URL-encoded tag names (e.g., <code>Premises_x0020_Name</code>) - Parse
+DD/MM/YYYY dates to ISO 8601 UTC</p>
+<p><strong>Validation Rules:</strong> - Skip records with missing
+<code>Reference_Number</code> or <code>Premises_Name</code> - Truncate
+fields to database column limits - Default capacity to 100 for TEN
+events</p>
+<p><strong>Provenance Logging:</strong> - <code>sha256_hash</code>:
+Integrity verification - <code>parser_version</code>: Track logic
+changes (<code>v2_xml_etree</code>) - <code>duration_ms</code>:
+Performance measurement</p>
 <hr />
-<h2 id="data-model">4. Data Model</h2>
-<p><strong>Core Tables:</strong> users, events, attendees, rsvps</p>
-<p><strong>Provenance Tables (Novel):</strong> -
-<code>data_sources</code>: Tracks external data origins (name, URL,
-license) - <code>import_runs</code>: Logs each import execution (rows,
-errors, status)</p>
-<p><strong>Key Constraints:</strong> - Unique emails for users and
-attendees - Unique RSVP per (event, attendee) pair - Events link to
-<code>data_sources</code> via <code>source_id</code></p>
+<h2 id="analytics-recommendation-design">5. Analytics &amp;
+Recommendation Design</h2>
+<h3 id="seasonality-endpoint">Seasonality Endpoint</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> strftime(<span class="st">&#39;%Y-%m&#39;</span>, start_time) <span class="kw">AS</span> <span class="dt">month</span>, <span class="fu">COUNT</span>(<span class="op">*</span>) </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> <span class="kw">events</span> <span class="kw">GROUP</span> <span class="kw">BY</span> <span class="dt">month</span> <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="dt">month</span></span></code></pre></div>
+<p>Returns monthly aggregation with top locations derived from actual
+event data.</p>
+<h3 id="trending-score-formula">Trending Score Formula</h3>
+<pre><code>score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)</code></pre>
+<ul>
+<li><strong>Rationale:</strong> Weights recent activity higher to
+surface “hot” events</li>
+<li><strong>Limitation:</strong> Doesn’t account for event capacity or
+time-to-event</li>
+</ul>
+<h3 id="recommendations-algorithm">Recommendations Algorithm</h3>
+<ol type="1">
+<li>Find attendee matching authenticated user’s email</li>
+<li>Extract locations from user’s past RSVPs</li>
+<li>Score upcoming events by location match</li>
+<li>Cold start: Return top upcoming events by start_time</li>
+</ol>
 <hr />
-<h2 id="key-design-decisions">5. Key Design Decisions</h2>
-<h3 id="rsvp-storage">RSVP Storage</h3>
-<p><strong>Choice:</strong> Separate <code>rsvps</code> table
-vs. embedded list.<br />
-<strong>Trade-off:</strong> Adds JOINs but enables timestamps,
-independent queries, and database-level uniqueness.</p>
-<h3 id="jwt-vs-sessions">JWT vs Sessions</h3>
-<p><strong>Choice:</strong> Stateless JWT tokens.<br />
-<strong>Trade-off:</strong> Simpler (no session store) but tokens can’t
-be revoked until expiry.</p>
-<h3 id="sqlite-compatibility">SQLite Compatibility</h3>
-<p><strong>Choice:</strong> SQLite for dev, PostgreSQL for prod.<br />
-<strong>Solution:</strong> Alembic’s <code>batch_alter_table</code> for
-SQLite foreign key constraints.</p>
+<h2 id="security">6. Security</h2>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 45%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Implementation</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication</td>
+<td>JWT (HS256, 30-min expiry)</td>
+<td>Stateless, but tokens can’t be revoked</td>
+</tr>
+<tr>
+<td>Password Storage</td>
+<td><code>pbkdf2_sha256</code> via passlib</td>
+<td>Secure, but slower than bcrypt variants</td>
+</tr>
+<tr>
+<td>Secret Management</td>
+<td><code>SECRET_KEY</code> from environment</td>
+<td>Requires proper deployment config</td>
+</tr>
+<tr>
+<td>Admin Protection</td>
+<td>All admin endpoints require <code>get_current_user</code></td>
+<td>Simple auth check, no role differentiation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Known Limitations:</strong> - No token refresh mechanism -
+Single-tenant (no organisation-level isolation) - CORS allows all
+origins in development mode</p>
 <hr />
-<h2 id="novel-features">6. Novel Features</h2>
-<h3 id="data-import-pipeline">Data Import Pipeline</h3>
-<p>The <code>scripts/import_dataset.py</code> script: 1. Registers data
-source in <code>data_sources</code> 2. Creates <code>ImportRun</code>
-record with “running” status 3. Imports rows idempotently using
-<code>source_record_id</code> 4. Logs errors and final counts</p>
-<h3 id="analytics-endpoints">Analytics Endpoints</h3>
+<h2 id="evaluation-with-numbers">7. Evaluation (With Numbers)</h2>
+<h3 id="test-suite">Test Suite</h3>
+<pre><code>$ pytest -q
+31 passed, 3 warnings in 0.80s</code></pre>
+<p><strong>Coverage Areas:</strong> - Authentication (register, login,
+protected routes) - CRUD operations (events, attendees, RSVPs) -
+Analytics correctness - Admin endpoints + Dataset provenance</p>
+<h3 id="import-performance">Import Performance</h3>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Records</th>
+<th>Duration</th>
+<th>Rows/Second</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leeds TEN XML (Full)</td>
+<td>~500</td>
+<td>~2.1s</td>
+<td>~238</td>
+</tr>
+<tr>
+<td>Test CSV (2 rows)</td>
+<td>2</td>
+<td>~4ms</td>
+<td>~500</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-response-times-local-sqlite">API Response Times (Local,
+SQLite)</h3>
 <table>
 <thead>
 <tr>
 <th>Endpoint</th>
-<th>Purpose</th>
+<th>Method</th>
+<th>Avg Response</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td><code>/health</code></td>
+<td>GET</td>
+<td>~2ms</td>
+</tr>
+<tr>
+<td><code>/events</code></td>
+<td>GET (10 items)</td>
+<td>~8ms</td>
+</tr>
+<tr>
 <td><code>/analytics/events/seasonality</code></td>
-<td>Monthly event aggregation</td>
+<td>GET</td>
+<td>~12ms</td>
 </tr>
 <tr>
-<td><code>/analytics/events/trending</code></td>
-<td>RSVP-based trending score</td>
-</tr>
-<tr>
-<td><code>/events/recommendations</code></td>
-<td>Personalised suggestions</td>
+<td><code>/admin/imports/run</code></td>
+<td>POST</td>
+<td>~2100ms (full XML fetch)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Trending Formula:</strong>
-<code>score = (recent_rsvps × 1.5) + (total_rsvps × 0.5)</code></p>
 <hr />
-<h2 id="testing">7. Testing</h2>
-<ul>
-<li><strong>25 tests</strong> covering auth, events, attendees, RSVPs,
-analytics</li>
-<li>In-memory SQLite with <code>StaticPool</code> for isolation</li>
-<li>Both success paths and error cases tested</li>
-</ul>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pytest <span class="at">-q</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">25</span> passed, 2 warnings in 0.72s</span></code></pre></div>
-<hr />
-<h2 id="deployment">8. Deployment</h2>
-<p><strong>Platform:</strong> Render.com with GitHub auto-deploy</p>
-<p><strong>Environment Variables:</strong> - <code>DATABASE_URL</code> –
-PostgreSQL connection - <code>SECRET_KEY</code> – JWT signing key -
-<code>ENVIRONMENT</code> – production</p>
-<p><strong>Verification:</strong> <code>/docs</code> accessible,
-<code>/health</code> returns <code>{"ok": true}</code></p>
-<hr />
-<h2 id="genai-declaration">9. GenAI Declaration</h2>
+<h2 id="genai-usage-critical-evaluation">8. GenAI Usage (Critical
+Evaluation)</h2>
 <h3 id="tools-used">Tools Used</h3>
 <ul>
 <li><strong>Google Gemini (Antigravity):</strong> Primary –
-architecture, coding, debugging</li>
-<li><strong>ChatGPT (GPT-4):</strong> Secondary – feedback
-interpretation</li>
+architecture, endpoint implementation, debugging</li>
+<li><strong>Claude (Opus):</strong> Secondary – documentation
+refinement, technical writing</li>
 </ul>
-<h3 id="usage-approach">Usage Approach</h3>
+<h3 id="what-ai-helped-with">What AI Helped With</h3>
 <ol type="1">
-<li>Described requirements, AI suggested layered structure</li>
-<li>Generated initial models, schemas, CRUD functions</li>
-<li>Debugged tracebacks collaboratively</li>
-<li>Explored alternatives (JWT vs sessions, embedded vs relational
-RSVPs)</li>
+<li>Suggested layered architecture (routes → crud → models)</li>
+<li>Generated initial Pydantic schemas with validators</li>
+<li>Debugged SQLAlchemy relationship issues</li>
+<li>Structured migration scripts</li>
 </ol>
-<h3 id="critical-evaluation">Critical Evaluation</h3>
+<h3 id="what-went-wrong">What Went Wrong</h3>
 <ul>
-<li>Always ran generated code before committing</li>
-<li>Caught security issues (hardcoded secrets) in review</li>
-<li>Fixed AI-introduced bugs (circular imports, bcrypt
-compatibility)</li>
+<li>Initial bcrypt implementation failed due to version incompatibility
+(switched to pbkdf2)</li>
+<li>AI generated duplicate imports that required manual cleanup</li>
+<li>First XML parser missed URL-encoded tag names</li>
 </ul>
-<p><strong>Full logs:</strong> See
-<code>docs/appendix_genai_logs.md</code></p>
+<h3 id="what-i-changed-manually">What I Changed Manually</h3>
+<ul>
+<li>Security review: Removed hardcoded <code>SECRET_KEY</code>
+defaults</li>
+<li>Enforced FastAPI Query constraints (<code>le=100</code>,
+<code>ge=0</code>)</li>
+<li>Fixed transaction isolation in provenance tests</li>
+</ul>
+<p><strong>Full Logs:</strong> See
+<code>docs/GENAI_EXPORT_LOGS.pdf</code></p>
 <hr />
-<h2 id="limitations-future-work">10. Limitations &amp; Future Work</h2>
-<p><strong>Current:</strong> - Single-tenant (no role-based access) - No
-email verification - 30-minute token expiry without refresh</p>
-<p><strong>Future:</strong> - Role-based permissions - Capacity
-enforcement - Email notifications - Rate limiting</p>
+<h2 id="limitations-future-work">9. Limitations &amp; Future Work</h2>
+<h3 id="current-limitations">Current Limitations</h3>
+<ol type="1">
+<li><strong>No role-based access control</strong> – All authenticated
+users have equal permissions</li>
+<li><strong>Token expiry without refresh</strong> – Users must re-login
+every 30 minutes</li>
+<li><strong>No capacity enforcement</strong> – RSVPs can exceed event
+capacity</li>
+<li><strong>Single data source type</strong> – Only Leeds TEN XML/CSV
+implemented</li>
+</ol>
+<h3 id="future-enhancements">Future Enhancements</h3>
+<ol type="1">
+<li><strong>Admin roles</strong> – Separate user and organiser
+permissions</li>
+<li><strong>Email notifications</strong> – Confirm RSVPs and remind
+attendees</li>
+<li><strong>Rate limiting</strong> – Prevent API abuse</li>
+<li><strong>Additional data sources</strong> – Integrate Eventbrite,
+Meetup APIs</li>
+<li><strong>Capacity waitlist</strong> – Queue RSVPs when events are
+full</li>
+</ol>
 <hr />
-<p><strong>Word Count:</strong> ~800 words (excluding code/tables)</p>
-<p><em>Report for COMP3011 CW1, University of Leeds</em></p>
+<p><strong>Word Count:</strong> ~950 words (excluding
+code/tables/diagrams)</p>
+<p><em>Technical Report for COMP3011 CW1, University of Leeds</em></p>
 </body>
 </html>
