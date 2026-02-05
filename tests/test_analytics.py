@@ -56,40 +56,74 @@ def test_recommendations_cold_start(client: TestClient, auth_headers):
     assert "user_id" in data
 
 def test_recommendations_personalized(client: TestClient, auth_headers, db):
-    # Setup: User attends Event A at "Library"
-    # We need to link the current user (testuser) to an attendee record
-    # The 'auth_headers' fixture usually creates a user 'testuser'.
-    # We need to explicitly create an attendee with that email.
+    # 1. Setup: Ensure user has an attendee record
+    # auth_headers comes from a fixture creating a user with email "test@example.com" or similar.
+    # We need to know the specific email. The auth fixture logic usually allows us to know this or we inspect the token?
+    # Actually, simpler: create a new user/token dynamic here if needed, OR just match the email used in conftest.
+    # Assuming conftest uses "test@example.com".
     
-    client.post("/attendees", json={"name": "Test User", "email": "authtest@example.com"}, headers=auth_headers)
+    # Let's inspect the `auth_headers` user identity by hitting /auth/me if it exists, or just use a known email.
+    # The standard conftest usually sets `test@example.com`.
+    user_email = "test@example.com"
+
+    # Create Attendee linked to this user
+    client.post("/attendees", json={"name": "Test User", "email": user_email}, headers=auth_headers)
+    att = db.query(Attendee).filter(Attendee.email == user_email).first()
+    assert att is not None
     
-    # Create Event A at "Library"
-    e1 = client.post(
-        "/events",
-        json={
-            "title": "Book Club", "location": "Library",
-            "start_time": (datetime.utcnow() + timedelta(days=10)).isoformat(),
-            "end_time": (datetime.utcnow() + timedelta(days=10, hours=1)).isoformat(),
-            "capacity": 20
-        },
-        headers=auth_headers
-    ).json()
+    # 2. Create History: User attended an event at "Preferred Location"
+    past_event = Event(
+        title="Past Event",
+        description="Desc",
+        location="Preferred Location",
+        start_time=datetime.now(timezone.utc) - timedelta(days=20),
+        end_time=datetime.now(timezone.utc) - timedelta(days=20, hours=2),
+        capacity=100
+    )
+    db.add(past_event)
+    db.commit()
+    db.refresh(past_event)
     
-    # Get attendee ID
-    # Verify we can find the attendee we just created
-    # Note: authtest@example.com is the email used by auth_headers user
+    rsvp = RSVP(event_id=past_event.id, attendee_id=att.id, status="going")
+    db.add(rsvp)
+    db.commit()
     
-    # Need to fetch the attendee ID programmatically or assume ID.
-    # We can get it by listing attendees? Or assume ID from response if we had return.
-    # The POST /attendees returns the created attendee.
-    # But wait, the test setup line `client.post("/attendees", ...)` didn't capture the response.
+    # 3. Create Future Events
+    # Target Event (Same Location)
+    target_event = Event(
+        title="Target Event",
+        description="Desc",
+        location="Preferred Location",
+        start_time=datetime.now(timezone.utc) + timedelta(days=5),
+        end_time=datetime.now(timezone.utc) + timedelta(days=5, hours=2),
+        capacity=100
+    )
+    # Noise Event (Different Location)
+    noise_event = Event(
+        title="Noise Event",
+        description="Desc",
+        location="Ignored Location",
+        start_time=datetime.now(timezone.utc) + timedelta(days=5),
+        end_time=datetime.now(timezone.utc) + timedelta(days=5, hours=2),
+        capacity=100
+    )
+    db.add(target_event)
+    db.add(noise_event)
+    db.commit()
     
-    # Refetch
-    attendees = client.get(f"/attendees/1").json() # Might fail if ID not 1
-    # Better: re-post and capture (idempotent?) No email unique.
+    # 4. Verify Recommendations
+    resp = client.get("/events/recommendations", headers=auth_headers)
+    assert resp.status_code == 200
+    data = resp.json()
     
-    # Let's fix the test logic to be robust
-    pass
+    recs = data["recommendations"]
+    rec_ids = [r["event_id"] for r in recs]
     
-    # COMPLETE REWRITE OF LOGIC TO BE SAFE
-    # ... (see replacement below)
+    # Assert Target is recommended
+    assert target_event.id in rec_ids
+    # Assert Noise is NOT recommended (because logic filters by location)
+    assert noise_event.id not in rec_ids
+    
+    # Verify reason text
+    target_rec = next(r for r in recs if r["event_id"] == target_event.id)
+    assert "Preferred Location" in target_rec["reason"]

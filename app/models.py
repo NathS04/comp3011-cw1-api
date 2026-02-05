@@ -43,7 +43,6 @@ class ImportRun(Base):
     rows_read: Mapped[int] = mapped_column(Integer, default=0)
     rows_inserted: Mapped[int] = mapped_column(Integer, default=0)
     rows_updated: Mapped[int] = mapped_column(Integer, default=0)
-    rows_updated: Mapped[int] = mapped_column(Integer, default=0)
     errors_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # 95+ Band Provenance Fields

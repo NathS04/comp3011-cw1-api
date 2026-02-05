@@ -11,7 +11,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.post("/imports/run", status_code=status.HTTP_201_CREATED)
 def run_import(
-    source_type: str = Query("xml", regex="^(xml|csv)$"),
+    source_type: str = Query("xml", pattern="^(xml|csv)$"),
     source_url: str = Query("https://opendata.leeds.gov.uk/downloads/Licences/temp-event-notice/temp-event-notice.xml"),
     db: Session = Depends(get_db), 
     current_user: User = Depends(auth.get_current_user) # Admin only in real life
