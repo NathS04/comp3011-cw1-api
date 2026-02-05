@@ -26,8 +26,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             resp.headers["X-Request-ID"] = request_id
             resp.headers["X-Content-Type-Options"] = "nosniff"
             resp.headers["X-Frame-Options"] = "DENY"
-            # Valid Cache-Control for sensitive endpoints
-            if request.url.path.startswith(("/auth", "/admin")):
+            
+            # Default to no-store for everything (Secure by default)
+            # Only if not already set (e.g. by ETag logic)
+            if "Cache-Control" not in resp.headers:
                 resp.headers["Cache-Control"] = "no-store"
             return resp
 
@@ -72,7 +74,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             if request.headers.get("If-None-Match") == etag:
                 response = Response(status_code=304) # No body for 304
                 response.headers["ETag"] = etag
-                # 304 should not have Content-Type/Length usually, but Starlette handles it.
+                response.headers["Cache-Control"] = "no-cache" # Allow caching but validate
             else:
                 # Reconstruct response with body
                 response = Response(
@@ -82,6 +84,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     media_type=response.media_type
                 )
                 response.headers["ETag"] = etag
+                response.headers["Cache-Control"] = "no-cache" # Allow caching but validate
 
         # 5. Logging
         process_time = time.time() - start_time
@@ -96,11 +99,11 @@ async def global_exception_handler(request: Request, exc: Exception):
     request_id = getattr(request.state, "request_id", "unknown")
 
     # For these custom exceptions, we return simple JSON. 
-    # The middleware will start wrapping these in add_headers soon? 
-    # Actually, exception handlers run *before* middleware returns in some stack configs, 
-    # but BaseHTTPMiddleware wraps the *entire* app.
-    # So `response = await call_next(request)` *returns* the response validation error caused.
-    # Thus, `add_headers` will implicitly apply to these too! Perfect.
+    # The middleware validly wraps these if they bubble up, BUT exception handlers
+    # in FastAPI run inside the middleware stack usually. 
+    # However, BaseHTTPMiddleware wraps the application. 
+    # Exceptions handled by FastAPI's exception_handler are returned as responses *to* the middleware.
+    # So add_headers WILL apply to these.
 
     if isinstance(exc, NotFoundException):
         return JSONResponse(status_code=404, content={"detail": f"{exc.name} not found"})

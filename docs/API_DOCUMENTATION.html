@@ -342,9 +342,9 @@ Management</a></li>
 </tbody>
 </table>
 <blockquote>
-<p><strong>Note:</strong> Current implementation does not enforce role
-separation; all authenticated users have full access. Admin role-based
-access is planned for future work.</p>
+<p><strong>Note:</strong> Admin endpoints (<code>/admin/*</code>)
+require the <code>is_admin</code> flag to be <code>True</code> on the
+user account. Non-admin users receive <code>403 Forbidden</code>.</p>
 </blockquote>
 <h3 id="error-response-format">Error Response Format</h3>
 <p>All errors return consistent JSON:</p>
@@ -731,7 +731,7 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href=
 <hr />
 <h3 id="list-import-runs">List Import Runs</h3>
 <p><strong>Endpoint:</strong> <code>GET /admin/imports</code><br />
-<strong>Auth Required:</strong> Yes</p>
+<strong>Auth Required:</strong> Admin</p>
 <p><strong>Query Parameters:</strong> | Parameter | Type | Default |
 Description | |———–|——|———|————-| | <code>limit</code> | integer | 10 |
 Max results to return |</p>
@@ -751,7 +751,7 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href=
 <hr />
 <h3 id="get-dataset-metadata">Get Dataset Metadata</h3>
 <p><strong>Endpoint:</strong> <code>GET /admin/dataset/meta</code><br />
-<strong>Auth Required:</strong> Yes</p>
+<strong>Auth Required:</strong> Admin</p>
 <p><strong>Success Response (200 OK):</strong></p>
 <div class="sourceCode" id="cb25"><pre
 class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
@@ -827,6 +827,18 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href=
 <td>User tries to RSVP twice to same event.</td>
 </tr>
 <tr>
+<td><strong>Rate Limited</strong></td>
+<td><code>429 Too Many Requests</code></td>
+<td><code>{"detail": "Too Many Requests"}</code></td>
+<td>Client exceeded rate limit (120/min global, 10/min login).</td>
+</tr>
+<tr>
+<td><strong>Admin Forbidden</strong></td>
+<td><code>403 Forbidden</code></td>
+<td><code>{"detail": "The user doesn't have enough privileges"}</code></td>
+<td>Non-admin user accessing <code>/admin/*</code> endpoints.</td>
+</tr>
+<tr>
 <td><strong>Empty Dataset</strong></td>
 <td><code>200 OK</code></td>
 <td><code>{"message": "No dataset imported yet"}</code></td>
@@ -837,6 +849,11 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href=
 <hr />
 <h2 id="http-status-codes-summary">HTTP Status Codes Summary</h2>
 <table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 34%" />
+<col style="width: 42%" />
+</colgroup>
 <thead>
 <tr>
 <th>Code</th>
@@ -871,6 +888,11 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href=
 <td>Missing/invalid JWT</td>
 </tr>
 <tr>
+<td><code>403</code></td>
+<td>Forbidden</td>
+<td>Non-admin accessing admin routes</td>
+</tr>
+<tr>
 <td><code>404</code></td>
 <td>Not Found</td>
 <td>Resource doesn’t exist</td>
@@ -886,9 +908,14 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href=
 <td>Validation failed</td>
 </tr>
 <tr>
+<td><code>429</code></td>
+<td>Too Many Requests</td>
+<td>Rate limit exceeded</td>
+</tr>
+<tr>
 <td><code>500</code></td>
 <td>Internal Server Error</td>
-<td>Unexpected error</td>
+<td>Unexpected error (includes <code>request_id</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -981,7 +1008,7 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href=
 <h3 id="running-tests">Running Tests</h3>
 <div class="sourceCode" id="cb38"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-v</span></span></code></pre></div>
-<p><strong>Result:</strong> 31 tests passing</p>
+<p><strong>Result:</strong> 35 tests passing</p>
 <hr />
 <h2 id="demo-script-curl">Demo Script (cURL)</h2>
 <div class="sourceCode" id="cb39"><pre

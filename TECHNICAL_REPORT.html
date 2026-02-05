@@ -294,7 +294,7 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">DATABASE_URL</span><span class="op">=</span><span class="st">&quot;sqlite:///./app.db&quot;</span> <span class="va">SECRET_KEY</span><span class="op">=</span><span class="st">&quot;dev-secret&quot;</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">alembic</span> upgrade head</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-q</span>                    <span class="co"># Expected: 31 passed</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-q</span>                    <span class="co"># Expected: 35 passed</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">uvicorn</span> app.main:app <span class="at">--reload</span></span></code></pre></div>
 <p><strong>Verification:</strong> API documentation at
 <code>http://127.0.0.1:8000/docs</code>.</p>
@@ -384,6 +384,7 @@ relationships. 4. <strong>Database:</strong> SQLite (dev), PostgreSQL
         string username UK
         string email UK
         string hashed_password
+        bool is_admin
         datetime created_at
     }
     Event {
@@ -519,8 +520,27 @@ relationships. 4. <strong>Database:</strong> SQLite (dev), PostgreSQL
 </tr>
 <tr>
 <td><strong>DoS</strong></td>
-<td><em>Not implemented</em></td>
-<td>Future: <code>slowapi</code> rate limiting</td>
+<td>In-memory rate limiting (toggleable)</td>
+<td><code>RateLimiter</code> middleware: 120/min global, 10/min login;
+429 on exceed</td>
+</tr>
+<tr>
+<td><strong>Admin abuse</strong></td>
+<td>RBAC admin-only routes</td>
+<td><code>get_current_admin_user</code> dependency; 403 if not
+admin</td>
+</tr>
+<tr>
+<td><strong>Request tracing</strong></td>
+<td><code>X-Request-ID</code> header + included in 500 JSON</td>
+<td><code>RequestLoggingMiddleware</code> generates UUID per
+request</td>
+</tr>
+<tr>
+<td><strong>Clickjacking</strong></td>
+<td>Security headers</td>
+<td><code>X-Frame-Options: DENY</code>,
+<code>X-Content-Type-Options: nosniff</code></td>
 </tr>
 </tbody>
 </table>
@@ -564,17 +584,32 @@ compromised tokens valid until expiry.</p>
 </tr>
 <tr>
 <td><strong>Admin/Import</strong></td>
-<td>6</td>
+<td>3</td>
 <td>Idempotency, provenance logging, XML parsing</td>
 </tr>
 <tr>
+<td><strong>RBAC/Security</strong></td>
+<td>2</td>
+<td>Admin-only access (403), non-admin blocked</td>
+</tr>
+<tr>
+<td><strong>Middleware</strong></td>
+<td>2</td>
+<td>Security headers present, rate limiting (429)</td>
+</tr>
+<tr>
 <td><strong>Attendees</strong></td>
-<td>5</td>
+<td>4</td>
 <td>CRUD, email uniqueness</td>
 </tr>
 <tr>
+<td><strong>Health</strong></td>
+<td>1</td>
+<td>Endpoint returns metadata</td>
+</tr>
+<tr>
 <td><strong>Total</strong></td>
-<td><strong>31</strong></td>
+<td><strong>35</strong></td>
 <td>Full pass on clean environment</td>
 </tr>
 </tbody>
@@ -626,8 +661,8 @@ Examples: - <code>feat: Add novel data integration tables</code> -
 </tr>
 <tr>
 <td><strong>Test suite duration</strong></td>
-<td>0.9s</td>
-<td>31 tests</td>
+<td>1.0s</td>
+<td>35 tests</td>
 </tr>
 </tbody>
 </table>
@@ -638,7 +673,9 @@ Examples: - <code>feat: Add novel data integration tables</code> -
 <p><strong>Tools Used:</strong> - <strong>Google Gemini
 (Antigravity):</strong> Primary coding assistant for scaffolding,
 debugging, test generation. - <strong>Claude (Anthropic):</strong>
-Documentation review and refactoring suggestions.</p>
+Documentation review, refactoring suggestions, security hardening. -
+<strong>ChatGPT (OpenAI):</strong> Early brainstorming and alternative
+exploration.</p>
 <p><strong>High-Level Creative Use:</strong> 1. <strong>Architecture
 exploration:</strong> Asked Gemini to compare embedded vs relational
 RSVP storage; chose relational for uniqueness constraints. 2.
@@ -668,24 +705,24 @@ href="docs/GENAI_EXPORT_LOGS.pdf">docs/GENAI_EXPORT_LOGS.pdf</a></em></p>
 </thead>
 <tbody>
 <tr>
-<td>Single-tenant (no roles)</td>
-<td>All users equal</td>
-<td>Add <code>is_admin</code> column</td>
-</tr>
-<tr>
-<td>No rate limiting</td>
-<td>DoS vulnerability</td>
-<td>Integrate <code>slowapi</code></td>
+<td>No token refresh</td>
+<td>UX friction (30-min sessions)</td>
+<td>Implement refresh tokens</td>
 </tr>
 <tr>
 <td>Manual imports</td>
 <td>Data staleness</td>
-<td>Celery scheduled task</td>
+<td>Celery/background scheduler</td>
 </tr>
 <tr>
-<td>No token refresh</td>
-<td>UX friction (30-min sessions)</td>
-<td>Implement refresh tokens</td>
+<td>Rate limit in-memory</td>
+<td>No shared state across workers</td>
+<td>Redis-backed counter</td>
+</tr>
+<tr>
+<td>No CSP header</td>
+<td>XSS mitigation incomplete</td>
+<td>Add Content-Security-Policy</td>
 </tr>
 </tbody>
 </table>

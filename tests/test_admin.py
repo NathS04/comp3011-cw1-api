@@ -16,6 +16,12 @@ def test_get_dataset_meta(client, db):
     user_data = {"username": "adminUser", "email": "admin@example.com", "password": "securepassword"}
     client.post("/auth/register", json=user_data)
     
+    # Promote to admin manually
+    from app.models import User
+    user = db.query(User).filter(User.username == "adminUser").first()
+    user.is_admin = True
+    db.commit()
+    
     # 2. Login
     login_resp = client.post("/auth/login", data={"username": "adminUser", "password": "securepassword"})
     token = login_resp.json()["access_token"]
@@ -30,6 +36,11 @@ def test_imports_list(client, db):
     # Auth setup
     user_data = {"username": "adminUser2", "email": "admin2@example.com", "password": "securepassword"}
     client.post("/auth/register", json=user_data)
+    
+    from app.models import User
+    user = db.query(User).filter(User.username == "adminUser2").first()
+    user.is_admin = True
+    db.commit()
     login_resp = client.post("/auth/login", data={"username": "adminUser2", "password": "securepassword"})
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}

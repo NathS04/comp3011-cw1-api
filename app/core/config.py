@@ -18,5 +18,10 @@ class Settings:
     SECRET_KEY = os.getenv("SECRET_KEY", "comp3011-coursework-secret-key-change-me-in-prod")
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    
+    # Advanced Security & Deployment
+    RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "1") == "1"
+    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "")
+    GIT_SHA = os.getenv("GIT_SHA", "unknown")
 
 settings = Settings()

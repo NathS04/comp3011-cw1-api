@@ -27,12 +27,24 @@ async def root():
     return RedirectResponse(url="/docs")
 
 # CORS
+from .core.config import settings
+
+# CORS Logic
+origins = ["*"]
+allow_credentials = False
+
+# In production (if allowed origins are set), restrict it
+if settings.ALLOWED_ORIGINS:
+    origins = settings.ALLOWED_ORIGINS.split(",")
+    allow_credentials = True  # Strict origins + credentials allowed
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],
 )
 
 # Custom Middleware

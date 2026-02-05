@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 def test_admin_import_error_sanitized(client: TestClient, db):
     # Setup Admin User
-    user_data = {"username": "adminErr", "email": "err@example.com", "password": "pass"}
+    user_data = {"username": "adminErr", "email": "err@example.com", "password": "password123"}
     client.post("/auth/register", json=user_data)
     
     from app.models import User
@@ -13,7 +13,7 @@ def test_admin_import_error_sanitized(client: TestClient, db):
     db.commit()
     
     # Login
-    token = client.post("/auth/login", data={"username": "adminErr", "password": "pass"}).json()["access_token"]
+    token = client.post("/auth/login", data={"username": "adminErr", "password": "password123"}).json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
     # Mock import_dataset to raise a sensitive error
