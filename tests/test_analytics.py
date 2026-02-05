@@ -64,7 +64,7 @@ def test_recommendations_personalized(client: TestClient, auth_headers, db):
     
     # Let's inspect the `auth_headers` user identity by hitting /auth/me if it exists, or just use a known email.
     # The standard conftest usually sets `test@example.com`.
-    user_email = "test@example.com"
+    user_email = "authtest@example.com"
 
     # Create Attendee linked to this user
     client.post("/attendees", json={"name": "Test User", "email": user_email}, headers=auth_headers)
