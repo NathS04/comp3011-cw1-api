@@ -225,7 +225,7 @@ After regenerating, verify each PDF contains:
 | 304 works | `curl -H "If-None-Match: $ETAG" /events` | 304 status, empty body |
 | 429 format | Flood `/auth/login` | `request_id` in JSON |
 | Headers present | Any response | `X-Request-ID`, `nosniff`, `DENY`, `Referrer-Policy`, etc. |
-| No stale counts | `grep -rn "39 passed" *.md docs/*.md` | No matches |
+| Test consistency | `grep -rn "41 passed" *.md` | Matches in all files |
 | No stale counts | `grep -rn "35 passed" *.md docs/*.md` | No matches |
 
 ---

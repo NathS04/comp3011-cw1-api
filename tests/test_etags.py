@@ -2,9 +2,8 @@
 from fastapi.testclient import TestClient
 from app.main import app
 
-client = TestClient(app)
 
-def test_etag_events_list():
+def test_etag_events_list(client):
     # 1. Initial Request -> 200 + ETag + cache headers
     r = client.get("/events")
     assert r.status_code == 200
@@ -21,14 +20,14 @@ def test_etag_events_list():
     assert r2.headers["Cache-Control"] == "no-cache"
     assert "X-Request-ID" in r2.headers  # Middleware still runs
 
-def test_etag_health_excluded():
+def test_etag_health_excluded(client):
     # Health should NOT have ETag and should be no-store
     r = client.get("/health")
     assert r.status_code == 200
     assert "ETag" not in r.headers
     assert r.headers["Cache-Control"] == "no-store"
 
-def test_etag_event_detail():
+def test_etag_event_detail(client):
     # Create event first to ensure ID exists
     # Assuming auth dependency, but tests usually use override or valid token.
     # Check existing tests for auth pattern. 
