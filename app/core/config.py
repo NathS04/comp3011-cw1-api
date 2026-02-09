@@ -21,7 +21,7 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
     
     # Advanced Security & Deployment
-    RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "1") == "1"
+    RATE_LIMIT_ENABLED = str(os.getenv("RATE_LIMIT_ENABLED", "1")).lower() in ("true", "1", "yes")
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "")
     GIT_SHA = os.getenv("RENDER_GIT_COMMIT") or os.getenv("GIT_SHA", "unknown")
 
