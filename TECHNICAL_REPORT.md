@@ -31,6 +31,21 @@
 | Authentication | ✅ | JWT + PBKDF2 |
 | Test suite | ✅ | **41 tests passing** |
 
+### Marker Evidence Cross-Reference
+
+| Requirement | Evidence | File Path |
+|-------------|----------|-----------|
+| Tests pass (41) | `pytest -q` output | `VERIFICATION_INSTRUCTIONS.md` |
+| Live deployment | `/health` → `environment: prod` | [comp3011-cw1-api.onrender.com/health](https://comp3011-cw1-api.onrender.com/health) |
+| API documentation | Full endpoint reference | `docs/API_DOCUMENTATION.pdf` |
+| Security headers | 7 headers on every response | `app/core/middleware.py` |
+| Rate limiting | 120/min global, 10/min login | `app/core/rate_limit.py` |
+| Novel dataset | Leeds TEN XML, SHA256 hashed | `scripts/import_dataset.py`, `docs/DATASET_SOURCE.md` |
+| GenAI logs | Tools, failures, dates | `docs/GENAI_EXPORT_LOGS.pdf` |
+| RBAC | Admin-only `/admin/*` with 403 | `app/api/admin.py`, `app/core/auth.py` |
+| ETag/304 | RFC 7232 compliance | `app/core/middleware.py` |
+| Presentation | Slide outline + viva prep | `docs/PRESENTATION_OUTLINE.md` |
+
 ---
 
 ## 2. Reproducibility
