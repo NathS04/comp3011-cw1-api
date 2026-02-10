@@ -47,7 +47,7 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 | **41 tests passing** | `pytest -q` |
 | **RBAC** | `/admin/*` → 403 for non-admin |
 | **Rate limiting** | 120/min global, 10/min login → 429 with `request_id` |
-| **Security headers** | 6 headers on all responses (X-Request-ID, nosniff, DENY, Referrer, Permissions, CORP) |
+| **Security headers** | 7 headers on all responses (X-Request-ID, nosniff, DENY, Referrer, Permissions, CORP, Cache-Control) |
 | **ETag caching** | If-None-Match → 304 empty body |
 | **Error sanitization** | 500s show generic message + request_id only |
 | **Provenance** | SHA256 hash in ImportRun |
