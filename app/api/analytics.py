@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, select, desc
+from sqlalchemy import func, select, desc, case, literal_column, text
 from datetime import datetime, timedelta, timezone
 from typing import List
 
@@ -15,67 +15,119 @@ router = APIRouter()
 @router.get("/analytics/events/seasonality", response_model=SeasonalityResponse)
 def get_event_seasonality(db: Session = Depends(get_db)):
     """
-    Get event aggregation by month to identify seasonal trends.
+    Get event aggregation by month using SQL GROUP BY.
+    Uses database-level aggregation for scalability.
     """
-    events = db.scalars(select(Event)).all()
+    # SQL aggregate: GROUP BY month, COUNT events per month
+    # strftime works on both SQLite and can be adapted for PostgreSQL
+    month_expr = func.strftime("%Y-%m", Event.start_time)
     
-    # Aggregation by month with location tracking
-    month_data = {}
-    for event in events:
-        month_key = event.start_time.strftime("%Y-%m")
-        if month_key not in month_data:
-            month_data[month_key] = {"count": 0, "locations": {}}
-        month_data[month_key]["count"] += 1
-        loc = event.location or "Unknown"
-        month_data[month_key]["locations"][loc] = month_data[month_key]["locations"].get(loc, 0) + 1
-        
-    # Format response with top locations derived from data
-    items = []
-    for month, data in sorted(month_data.items()):
-        # Get top 3 locations for this month
-        sorted_locs = sorted(data["locations"].items(), key=lambda x: x[1], reverse=True)
-        top_locs = [loc for loc, count in sorted_locs[:3]]
-        items.append(SeasonalityItem(
-            month=month,
-            count=data["count"],
-            top_categories=top_locs if top_locs else ["N/A"]
-        ))
-        
+    stmt = (
+        select(
+            month_expr.label("month"),
+            func.count(Event.id).label("event_count"),
+        )
+        .group_by(month_expr)
+        .order_by(month_expr)
+    )
+    
+    rows = db.execute(stmt).all()
+    
+    # For top locations per month, use a secondary grouped query
+    loc_stmt = (
+        select(
+            month_expr.label("month"),
+            Event.location,
+            func.count(Event.id).label("loc_count"),
+        )
+        .group_by(month_expr, Event.location)
+        .order_by(month_expr, desc(func.count(Event.id)))
+    )
+    loc_rows = db.execute(loc_stmt).all()
+    
+    # Build location lookup {month: [top locations]}
+    month_locations: dict = {}
+    for row in loc_rows:
+        m = row.month
+        if m not in month_locations:
+            month_locations[m] = []
+        if len(month_locations[m]) < 3:  # Top 3 locations
+            month_locations[m].append(row.location or "Unknown")
+    
+    items = [
+        SeasonalityItem(
+            month=row.month,
+            count=row.event_count,
+            top_categories=month_locations.get(row.month, ["N/A"])
+        )
+        for row in rows
+    ]
+    
     return SeasonalityResponse(items=items)
 
 @router.get("/analytics/events/trending", response_model=List[TrendingItem])
 def get_trending_events(window_days: int = 30, limit: int = 5, db: Session = Depends(get_db)):
     """
-    Identify trending events based on recent RSVP activity.
+    Identify trending events using SQL aggregation.
     Trending Score = (Recent RSVPs * 1.5) + (Total RSVPs * 0.5)
+    Computed entirely in SQL for scalability.
     """
     cutoff = datetime.utcnow() - timedelta(days=window_days)
     
-    # Fetch events with their RSVPs
-    events = db.scalars(select(Event)).all()
+    # SQL subquery: count total RSVPs and recent RSVPs per event
+    total_rsvps = (
+        select(
+            RSVP.event_id,
+            func.count(RSVP.id).label("total_count"),
+        )
+        .group_by(RSVP.event_id)
+        .subquery("total_rsvps")
+    )
     
-    trending = []
-    for event in events:
-        total_rsvps = len(event.rsvps)
-        # Handle offset-naive vs aware datetimes for SQLite
-        try:
-            recent_rsvps = sum(1 for r in event.rsvps if r.created_at.replace(tzinfo=None) >= cutoff)
-        except:
-            recent_rsvps = sum(1 for r in event.rsvps if r.created_at >= cutoff.replace(tzinfo=timezone.utc))
-        
-        score = (recent_rsvps * 1.5) + (total_rsvps * 0.5)
-        
-        if score > 0:
-            trending.append(TrendingItem(
-                event_id=event.id,
-                title=event.title,
-                trending_score=score,
-                recent_rsvps=recent_rsvps
-            ))
-            
-    # Sort by score desc
-    trending.sort(key=lambda x: x.trending_score, reverse=True)
-    return trending[:limit]
+    recent_rsvps = (
+        select(
+            RSVP.event_id,
+            func.count(RSVP.id).label("recent_count"),
+        )
+        .where(RSVP.created_at >= cutoff)
+        .group_by(RSVP.event_id)
+        .subquery("recent_rsvps")
+    )
+    
+    # Main query: JOIN events with RSVP counts, compute score
+    stmt = (
+        select(
+            Event.id,
+            Event.title,
+            func.coalesce(total_rsvps.c.total_count, 0).label("total"),
+            func.coalesce(recent_rsvps.c.recent_count, 0).label("recent"),
+        )
+        .outerjoin(total_rsvps, Event.id == total_rsvps.c.event_id)
+        .outerjoin(recent_rsvps, Event.id == recent_rsvps.c.event_id)
+        .where(
+            (func.coalesce(total_rsvps.c.total_count, 0) > 0) |
+            (func.coalesce(recent_rsvps.c.recent_count, 0) > 0)
+        )
+        .order_by(
+            desc(
+                func.coalesce(recent_rsvps.c.recent_count, 0) * 1.5 +
+                func.coalesce(total_rsvps.c.total_count, 0) * 0.5
+            )
+        )
+        .limit(limit)
+    )
+    
+    rows = db.execute(stmt).all()
+    
+    return [
+        TrendingItem(
+            event_id=row.id,
+            title=row.title,
+            trending_score=(row.recent * 1.5) + (row.total * 0.5),
+            recent_rsvps=row.recent,
+        )
+        for row in rows
+    ]
 
 @router.get("/events/recommendations", response_model=RecommendationResponse)
 def get_recommendations(user=Depends(get_current_user), db: Session = Depends(get_db)):
