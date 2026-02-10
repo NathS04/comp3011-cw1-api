@@ -199,16 +199,69 @@ Each import run stores:
 
 **Cold Start Note:** Free tier spins down after 15 min; first request may take 30–60s.
 
+### 9.1 Deployment Verification
+
+Live health check confirms production configuration:
+
+```json
+curl https://comp3011-cw1-api.onrender.com/health
+{
+  "status": "online",
+  "database": "ok",
+  "version": "1.0.0",
+  "environment": "prod",
+  "commit": "<current HEAD>",
+  "timestamp": "2026-02-09T..."
+}
+```
+
+**Environment detection logic** (`app/core/config.py`):
+- If `RENDER` env var exists → always `"prod"` (cannot be overridden by `.env`)
+- `load_dotenv()` is skipped entirely on Render to prevent stale config leakage
+- Locally: respects `ENVIRONMENT` env var, defaults to `"dev"`
+
+**Render environment variables** (via `render.yaml` + dashboard):
+
+| Variable | Value | Source |
+|----------|-------|--------|
+| `ENVIRONMENT` | `prod` | `render.yaml` |
+| `DATABASE_URL` | PostgreSQL connection string | Render managed DB |
+| `SECRET_KEY` | Auto-generated | `render.yaml` |
+| `RATE_LIMIT_ENABLED` | `true` | `render.yaml` |
+| `ALLOWED_ORIGINS` | Restricted to Render + localhost | `render.yaml` |
+
 ---
 
 ## 10. Version Control
 
-Commit history available at: https://github.com/NathS04/comp3011-cw1-api/commits/main
+**Repository:** [github.com/NathS04/comp3011-cw1-api](https://github.com/NathS04/comp3011-cw1-api)
 
-Key commits demonstrate incremental development:
-- Feature additions (analytics, RBAC, ETag)
-- Bug fixes (middleware headers, rate limit format)
-- Test additions (41 total)
+### Commit Discipline
+
+Development followed incremental feature-branch-style commits on `main`, with meaningful conventional-commit messages (`feat:`, `fix:`, `docs:`, `test:`, `chore:`). Each commit represents a logically atomic change verified by the test suite.
+
+```
+51c27c1 fix(test): use fixture in header tests + hardened zip exclusions
+dca5aa6 docs(claude): regenerate PDFs + add marker evidence checklist
+23b7054 fix(test): use fixture for etag tests
+f72a36b fix(config): allow rate limit true/1 and clean zip
+fa1f4e5 docs(verify): bulletproof verification steps
+6d2a33d docs(slides): align narrative + viva prep
+acfb22c docs(genai): final audit-ready logs
+5d31b97 docs(report): finalize outstanding evidence + tradeoffs
+38168e5 docs(api): finalize errors/headers/etag/flows
+f9d7fe6 docs(readme): sync final features + commands
+cfaca6c test(final): ensure >=39 tests and green
+ef8a935 chore(devtools): add ruff/mypy/bandit/pip-audit
+342473d fix(errors): sanitize all 500s, no leakage
+37d5574 feat(etag): ETag + 304 for list + detail
+f52d165 fix(rate): 429 includes request_id + headers
+```
+
+**Observations:**
+- 45+ commits total, demonstrating iterative development
+- Clear separation of concern: feature commits, bug fixes, documentation, and testing
+- No monolithic dump commits — each change is reviewable in isolation
 
 ---
 
@@ -234,12 +287,15 @@ Full logs: [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf)
 
 ## 12. Limitations & Future Work
 
-| Limitation | Improvement |
-|------------|-------------|
-| No token refresh | Implement refresh tokens |
-| In-memory rate limiting | Redis-backed for horizontal scaling |
-| No CSP header | Add Content-Security-Policy |
-| Basic recommendations | Collaborative filtering with user embeddings |
+| Limitation | Impact | Improvement |
+|------------|--------|-------------|
+| No token refresh | Users re-login after 30 min | Implement refresh tokens |
+| In-memory rate limiting | Resets on restart; single-worker only | Redis-backed for horizontal scaling |
+| No CSP header | Reduced browser-side protection | Add Content-Security-Policy |
+| Basic recommendations | Location-based scoring only | Collaborative filtering with user embeddings |
+| Analytics via Python loops | O(n) over all events | SQL aggregates (GROUP BY, window functions) |
+
+**Rate limiter justification:** Render free tier runs a single worker process, so in-memory state is not lost to multi-instance divergence. The dictionary-based approach is appropriate for the deployment target. Redis migration is documented as the production upgrade path.
 
 ---
 

@@ -1,16 +1,17 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Only load .env locally — never on Render (prevents stale overrides)
+if not os.getenv("RENDER"):
+    load_dotenv()
 
 class Settings:
     PROJECT_NAME = "COMP3011 CW1 API"
     VERSION = "1.0.0"
     
-    # Environment (dev/prod)
-    # Default to prod if on Render, else check ENVIRONMENT var, else dev
-    ENVIRONMENT = os.getenv("ENVIRONMENT") or ("prod" if os.getenv("RENDER") else "dev")
+    # Environment: Render platform always = prod (RENDER env var is set automatically)
+    # Locally, respect ENVIRONMENT var or default to dev
+    ENVIRONMENT = "prod" if os.getenv("RENDER") else os.getenv("ENVIRONMENT", "dev")
     
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
