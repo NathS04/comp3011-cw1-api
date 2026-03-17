@@ -2,6 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
+[![CI](https://github.com/NathS04/comp3011-cw1-api/actions/workflows/ci.yml/badge.svg)](https://github.com/NathS04/comp3011-cw1-api/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/Tests-84%20passing-brightgreen.svg)](#running-tests)
 [![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
