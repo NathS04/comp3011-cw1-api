@@ -1,12 +1,13 @@
 # Verification Instructions
 
 **COMP3011 CW1 – Marker Instructions**
+**Last Updated:** 17th March 2026
 
 ---
 
 ## 1. Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - `jq` (optional, for JSON parsing)
 
 ---
@@ -14,219 +15,219 @@
 ## 2. Extract & Setup
 
 ```bash
-unzip comp3011-cw1-api_submission.zip -d verify && cd verify/comp3011-cw1-api
+unzip comp3011-cw1-api_submission_FINAL.zip -d verify && cd verify/comp3011-cw1-api
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ---
 
-## 3. Verify Imports
+## 3. Run Tests
 
 ```bash
-python3 -c "import app.main; import requests; print('OK')"
-# Expected: OK
-```
-
----
-
-## 4. Run Tests
-
-```bash
-export DATABASE_URL="sqlite:///./test.db" SECRET_KEY="test"
-alembic upgrade head
 pytest -q
 ```
 
-**Expected:** `41 passed`
+**Expected:** `84 passed` in under 2 seconds.
 
 ---
 
-## 5. Start Server
-
-> ⚠️ **Important:** Set environment variables BEFORE starting the server.
+## 4. Quality Gates
 
 ```bash
-export DATABASE_URL="sqlite:///./test.db"
-export SECRET_KEY="test"
-export RATE_LIMIT_ENABLED="true"
-uvicorn app.main:app --port 8000 &
-sleep 2
+ruff check .                                          # Expected: All checks passed!
+mypy app scripts/import_dataset.py scripts/make_admin.py scripts/clean_db.py  # Expected: Success
+bandit -r app scripts -q                              # Expected: No medium/high issues
+pytest --cov=app --cov-report=term-missing -q         # Expected: 95% app coverage
 ```
 
 ---
 
-## 6. Verify /health
+## 5. Start the API
 
 ```bash
-curl -s http://127.0.0.1:8000/health | jq
-```
-
-**Expected fields:** `status` ("online"), `database` ("ok"), `version`, `environment`, `commit`, `timestamp`
-
-**On Render (Production):**
-```bash
-curl -s https://comp3011-cw1-api.onrender.com/health | jq '.environment'
-# Expected: "prod"
+export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="test-secret-key"
+alembic upgrade head
+uvicorn app.main:app --port 8000
 ```
 
 ---
 
-## 7. Verify Security Headers
+## 6. Verify Health
 
 ```bash
-curl -si http://127.0.0.1:8000/health | head -20
+curl -s http://localhost:8000/health | jq .
 ```
 
-**Expected headers (all responses):**
-- `X-Request-ID: <uuid>`
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Referrer-Policy: no-referrer`
-- `Permissions-Policy: geolocation=(), microphone=(), camera=()`
-- `Cross-Origin-Resource-Policy: same-site`
-- `Cache-Control: no-store`
-
-**GET /events 200 responses additionally have:**
-- `ETag: "<hash>"`
-- `Cache-Control: no-cache`
+Expected: `{"status": "online", "database": "ok", "version": "1.0.0", ...}`
 
 ---
 
-## 8. Verify RBAC (403)
+## 7. Verify Authentication
 
 ```bash
-# Register non-admin user
-curl -X POST http://127.0.0.1:8000/auth/register \
+# Register
+curl -s -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username":"testuser","email":"test@example.com","password":"password123"}'
+  -d '{"username":"marker","email":"marker@test.com","password":"SecurePass123"}' | jq .
 
 # Login
-TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
-  -d "username=testuser&password=password123" | jq -r '.access_token')
-
-# Try admin endpoint (should fail)
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
+  -d "username=marker&password=SecurePass123" | jq -r '.access_token')
+echo "Token: $TOKEN"
 ```
-
-**Expected:** `{"detail":"The user doesn't have enough privileges"}`
-
-```bash
-# Promote to admin and retry
-python3 scripts/make_admin.py testuser
-
-# Re-login (admin flag updated)
-TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
-  -d "username=testuser&password=password123" | jq -r '.access_token')
-
-curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/admin/imports
-```
-
-**Expected:** `[]` or list of imports
 
 ---
 
-## 9. Verify ETag + 304
+## 8. Verify Event CRUD with Ownership
 
 ```bash
-# First request - get ETag
-RESPONSE=$(curl -si http://127.0.0.1:8000/events)
-echo "$RESPONSE" | head -15
-ETAG=$(echo "$RESPONSE" | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
+# Create event (stores created_by_user_id)
+curl -s -X POST http://localhost:8000/events \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test Event","location":"Leeds","start_time":"2026-12-01T10:00:00Z","end_time":"2026-12-01T12:00:00Z","capacity":50}' | jq .
+
+# Owner can patch
+curl -s -X PATCH http://localhost:8000/events/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Updated Event"}' | jq .
+# Expected: 200 with updated title
+
+# Register second user
+curl -s -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"other","email":"other@test.com","password":"OtherPass123"}' > /dev/null
+TOKEN2=$(curl -s -X POST http://localhost:8000/auth/login \
+  -d "username=other&password=OtherPass123" | jq -r '.access_token')
+
+# Non-owner gets 403
+curl -s -X PATCH http://localhost:8000/events/1 \
+  -H "Authorization: Bearer $TOKEN2" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Hijack"}' | jq .
+# Expected: 403 "Not authorised to modify this event"
+```
+
+---
+
+## 9. Verify Attendee / RSVP Ownership
+
+```bash
+# Owner creates attendee
+curl -s -X POST http://localhost:8000/attendees \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Marker Attendee","email":"marker-attendee@test.com"}' | jq .
+
+# Owner can RSVP that attendee to the event
+curl -s -X POST http://localhost:8000/events/1/rsvps \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"attendee_id":1,"status":"going"}' | jq .
+
+# Different non-admin user cannot RSVP someone else's attendee
+curl -s -X POST http://localhost:8000/events/1/rsvps \
+  -H "Authorization: Bearer $TOKEN2" \
+  -H "Content-Type: application/json" \
+  -d '{"attendee_id":1,"status":"going"}' | jq .
+# Expected: 403 "Not authorised to RSVP for this attendee"
+```
+
+---
+
+## 10. Verify Provenance (Novel Feature)
+
+```bash
+# For user-created event
+curl -s http://localhost:8000/events/1/provenance | jq .
+# Expected: {"event_id": 1, "is_user_created": true, "source_name": null, ...}
+
+# Import external data (admin required)
+python3 scripts/make_admin.py marker
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
+  -d "username=marker&password=SecurePass123" | jq -r '.access_token')
+
+curl -s -X POST "http://localhost:8000/admin/imports/run?source_type=csv&source_url=scripts/sample_events_dataset.csv" \
+  -H "Authorization: Bearer $TOKEN" | jq .
+
+# Check provenance for imported event
+curl -s http://localhost:8000/events/2/provenance | jq .
+# Expected: is_user_created=false, source_name, sha256_hash populated
+```
+
+---
+
+## 11. Verify ETag & 304
+
+```bash
+ETAG=$(curl -si http://localhost:8000/events | grep -i "^etag:" | cut -d' ' -f2 | tr -d '\r')
 echo "ETag: $ETAG"
 
-# Conditional request (same endpoint, no data change)
-curl -si -H "If-None-Match: $ETAG" http://127.0.0.1:8000/events
+curl -si -H "If-None-Match: $ETAG" http://localhost:8000/events
+# Expected: HTTP/1.1 304 Not Modified, empty body
 ```
-
-**Expected:**
-- Status: `HTTP/1.1 304 Not Modified`
-- Headers: `ETag` (same value), `X-Request-ID`, `Cache-Control: no-cache`
-- Body: **EMPTY** (no content)
 
 ---
 
-## 10. Verify Rate Limiting (429)
+## 12. Verify Security Headers
 
 ```bash
-# Flood login endpoint (limit: 10/min)
-for i in {1..12}; do
-  CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8000/auth/login \
-    -d "username=fake&password=fake")
-  echo "Request $i: $CODE"
-done
+curl -si http://localhost:8000/health | head -15
 ```
 
-**Expected:** First 10 return 401, then 429
-
-```bash
-# Verify 429 response format (after hitting limit)
-curl -si -X POST http://127.0.0.1:8000/auth/login -d "username=fake&password=fake"
-```
-
-**Expected JSON:** `{"detail":"Too Many Requests","request_id":"<uuid>"}`
-**Expected Header:** `X-Request-ID: <uuid>` (matches JSON `request_id`)
+Expected headers: `X-Request-ID`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, `Cross-Origin-Resource-Policy: same-site`.
 
 ---
 
-## 11. Verify Sanitized 500 (Optional)
-
-To verify 500 error sanitization:
+## 13. Verify RBAC
 
 ```bash
-# This requires triggering an internal error safely
-# One way: make admin import with broken source (if applicable)
-# Otherwise, trust test: tests/test_admin_errors.py validates this
-```
+# Non-admin cannot access /admin/*
+curl -s -H "Authorization: Bearer $TOKEN2" http://localhost:8000/admin/imports | jq .
+# Expected: 403 "The user doesn't have enough privileges"
 
-**Expected 500 response:** 
-```json
-{"detail": "Internal Server Error", "request_id": "<uuid>"}
+# Admin can access
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8000/admin/imports | jq .
+# Expected: 200 with list of imports
+
+# Import quality analytics
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8000/admin/imports/quality | jq .
+# Expected: 200 with {total_runs, successful, failed, runs: [...]}
 ```
-- No stack traces
-- No exception details
-- `request_id` for log correlation
 
 ---
 
-## 12. PDF Regeneration
+## 14. Verify Analytics
 
-### Option A: VS Code
-1. Install "Markdown PDF" extension
-2. Open each `.md` file
-3. Cmd+Shift+P → "Markdown PDF: Export (pdf)"
-
-### Option B: Pandoc
 ```bash
-pandoc docs/API_DOCUMENTATION.md -o docs/API_DOCUMENTATION.pdf
-pandoc TECHNICAL_REPORT.md -o TECHNICAL_REPORT.pdf
-pandoc docs/GENAI_EXPORT_LOGS.md -o docs/GENAI_EXPORT_LOGS.pdf
-```
+curl -s http://localhost:8000/analytics/events/seasonality | jq .
+# Expected: {items: [{month, count, top_locations}]}
 
-### PDF Verification Checklist
-After regenerating, verify each PDF contains:
-- [ ] Test count: **41 passed**
-- [ ] Rate limits: **120/min global, 10/min login**
-- [ ] Headers: **X-Request-ID, nosniff, DENY, Referrer-Policy, Permissions-Policy, CORP**
-- [ ] /health fields: **status, database, version, environment, commit, timestamp**
-- [ ] ETag/304: **described with empty body**
+curl -s http://localhost:8000/analytics/events/trending | jq .
+# Expected: list of trending events with scores
+```
 
 ---
 
-## 13. Marker Sanity Checklist
+## 15. Submission Checklist
 
 | Check | Command | Expected |
 |-------|---------|----------|
-| Tests pass | `pytest -q` | `41 passed` |
-| Import works | `python3 -c "import app.main"` | No error |
-| Health works | `curl /health` | JSON with `database: "ok"` |
-| RBAC enforced | `curl -H "Authorization: Bearer $TOKEN" /admin/imports` | 403 for non-admin |
-| ETag present | `curl -si /events` | `ETag:` header |
-| 304 works | `curl -H "If-None-Match: $ETAG" /events` | 304 status, empty body |
-| 429 format | Flood `/auth/login` | `request_id` in JSON |
-| Headers present | Any response | `X-Request-ID`, `nosniff`, `DENY`, `Referrer-Policy`, etc. |
-| Test consistency | `grep -rn "41 passed" *.md` | Matches in all files |
-| No stale counts | `grep -rn "35 passed" *.md docs/*.md` | No matches |
+| Tests pass | `pytest -q` | 84 passed |
+| Ruff clean | `ruff check .` | All checks passed |
+| Mypy clean | `mypy app scripts/import_dataset.py scripts/make_admin.py scripts/clean_db.py` | Success |
+| Bandit clean | `bandit -r app scripts -q` | No medium/high |
+| Coverage target | `pytest --cov=app --cov-report=term-missing -q` | 95% app coverage |
+| Technical report exists | `ls TECHNICAL_REPORT.pdf` | File present |
+| API docs exist | `ls docs/API_DOCUMENTATION.pdf` | File present |
+| GenAI logs exist | `ls docs/GENAI_EXPORT_LOGS.pdf` | File present |
+| Health endpoint | `curl localhost:8000/health` | status: online |
+| Ownership enforced | See sections 8-9 | 403 for non-owner |
+| Provenance works | See section 10 | Lineage returned |
+| ETag works | See section 11 | 304 returned |
 
 ---
 

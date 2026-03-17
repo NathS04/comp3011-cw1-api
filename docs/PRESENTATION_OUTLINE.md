@@ -44,7 +44,7 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 
 | Feature | Evidence |
 |---------|----------|
-| **41 tests passing** | `pytest -q` |
+| **84 tests passing** | `pytest -q` |
 | **RBAC** | `/admin/*` → 403 for non-admin |
 | **Rate limiting** | 120/min global, 10/min login → 429 with `request_id` |
 | **Security headers** | 7 headers on all responses (X-Request-ID, nosniff, DENY, Referrer, Permissions, CORP, Cache-Control) |
@@ -94,7 +94,7 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 
 ## Slide 8: Testing
 
-**41 tests:** Auth, Events, RSVPs, Analytics, Admin, RBAC, Middleware, ETag, Headers, Errors
+**84 tests:** Auth, Events, RSVPs, Analytics, Admin, RBAC, Ownership, Middleware, ETag, Headers, Errors, Provenance
 
 - In-memory SQLite isolation
 - <1.5s runtime
@@ -139,7 +139,7 @@ Client → Middleware (RateLimit, Headers, ETag) → FastAPI → Auth → Routes
 | **What headers on 429?** | X-Request-ID, nosniff, DENY, Referrer-Policy, Permissions-Policy, CORP, no-store |
 | **How is 304 tested?** | `tests/test_etags.py` asserts empty body, ETag header present |
 | **What AI got wrong?** | Missing `requests`, placeholder tests, header ordering |
-| **What's the test count?** | 41 passed |
+| **What's the test count?** | 84 passed |
 
 ---
 

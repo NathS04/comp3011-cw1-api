@@ -24,7 +24,7 @@ The ingestion pipeline (`scripts/import_dataset.py`) supports both legacy CSV an
 Each import run logs:
 - `source_url`: The remote URL.
 - `sha256_hash`: Hash of the raw XML content (for integrity verification).
-- `parser_version`: `v2_xml_etree` (tracks logic versioning).
+- `parser_version`: `v2_xml_defused` (tracks logic versioning).
 - `duration_ms`: Time taken to fetch and parse.
 
 **Field Mapping:**

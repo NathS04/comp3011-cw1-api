@@ -1,15 +1,16 @@
 # EventHub – Event & RSVP API
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
-[![Tests](https://img.shields.io/badge/Tests-41%20passing-brightgreen.svg)](#running-tests)
+[![Tests](https://img.shields.io/badge/Tests-84%20passing-brightgreen.svg)](#running-tests)
+[![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A production-grade REST API for event management with **real-world data integration** from Leeds City Council and **intelligent analytics**. Built for COMP3011 Web Services coursework at the University of Leeds.
+A production-ready FastAPI REST API for event management, featuring **real-world data integration** from Leeds City Council, **secure role-based access control**, **data provenance tracking**, and **intelligent analytics**. Built for the COMP3011 Web Services coursework at the University of Leeds.
 
 ---
 
-## 📦 Submission Deliverables
+## Submission Deliverables
 
 | Document | Format | Path |
 |----------|--------|------|
@@ -21,18 +22,16 @@ A production-grade REST API for event management with **real-world data integrat
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ```bash
-# Clone & setup
 git clone https://github.com/NathS04/comp3011-cw1-api.git && cd comp3011-cw1-api
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# Configure & run
 export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-key-change-me"
 alembic upgrade head
-pytest -q                    # Expected: 41 passed
+pytest -q                    # Expected: 84 passed
 uvicorn app.main:app --reload
 ```
 
@@ -40,150 +39,91 @@ uvicorn app.main:app --reload
 
 ---
 
-## ☁️ Deployment (Render)
+## Deployment (Render)
 
 **Live API:** https://comp3011-cw1-api.onrender.com
 
-> ⚠️ **Note:** Free tier spins down after 15 min inactivity. First request may take ~30–60s (cold start). If you see a 503, try again after 60 seconds.
+> **Note:** Free tier spins down after 15 min inactivity. First request may take 30-60s (cold start).
 
 - `render.yaml` provisions managed PostgreSQL
 - Environment: `DATABASE_URL`, `SECRET_KEY`, `ENVIRONMENT=prod`
 
 ---
 
-## 🔒 Security & Standards
+## Security
 
 | Feature | Implementation |
 |---------|---------------|
-| **RBAC** | `is_admin` flag; `/admin/*` returns 403 for non-admin |
+| **Authentication** | JWT Bearer (HS256, 30-min expiry) |
+| **Password Hashing** | PBKDF2-SHA256 |
+| **RBAC** | Anonymous (read), Authenticated (CRUD), Admin (imports) |
+| **Event Ownership** | `created_by_user_id`; only owner or admin can PATCH/DELETE |
+| **Attendee / RSVP Ownership** | Attendees store `owner_user_id`; RSVP create/delete is restricted to attendee owner, event owner, or admin as appropriate |
 | **Rate Limiting** | 120/min global, 10/min login |
-| **429 Response** | `{"detail":"Too Many Requests","request_id":"<uuid>"}` |
-| **Request Tracing** | `X-Request-ID` header on **all** responses |
-| **Security Headers** | See table below |
-| **ETag Caching** | GET /events returns ETag; `If-None-Match` → 304 Not Modified |
-| **Error Sanitization** | 500 errors: `{"detail":"Internal Server Error","request_id":"<uuid>"}` |
-| **Provenance** | SHA256 hash stored; ImportRun table logs imports |
-
-### Security Headers (All Responses)
-
-| Header | Value |
-|--------|-------|
-| `X-Request-ID` | UUID v4 |
-| `X-Content-Type-Options` | `nosniff` |
-| `X-Frame-Options` | `DENY` |
-| `Referrer-Policy` | `no-referrer` |
-| `Permissions-Policy` | `geolocation=(), microphone=(), camera=()` |
-| `Cross-Origin-Resource-Policy` | `same-site` |
-| `Cache-Control` | `no-store` (default) or `no-cache` (ETag endpoints) |
+| **Security Headers** | X-Request-ID, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, CORP |
+| **ETag Caching** | SHA256 body hash; `If-None-Match` returns 304 (RFC 7232) |
+| **Error Sanitisation** | Generic 500 with `request_id`; no stack traces |
+| **XML Safety** | `defusedxml` prevents XXE attacks |
 
 ---
 
-## 🔌 API Endpoints
+## Key Features
 
-### Core CRUD
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/health` | Health check (status, database, version, environment, commit, timestamp) | No |
-| POST | `/auth/register` | Register user | No |
-| POST | `/auth/login` | Get JWT token | No |
-| GET/POST | `/events` | List/Create events | POST: Yes |
-| PATCH/DELETE | `/events/{id}` | Update/Delete event | Yes |
-| GET | `/events/{id}/stats` | RSVP statistics | No |
-| POST | `/attendees` | Create attendee | Yes |
-| POST | `/events/{id}/rsvps` | Create RSVP | Yes |
-
-### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/analytics/events/seasonality` | Monthly distribution |
-| GET | `/analytics/events/trending` | Trending score |
-| GET | `/events/recommendations` | Personalised suggestions (auth required) |
-
-### Admin (Admin-only)
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/admin/imports/run` | Trigger dataset import | **Admin** |
-| GET | `/admin/imports` | List import runs | **Admin** |
-| GET | `/admin/dataset/meta` | Dataset metadata | **Admin** |
-
-> **RBAC:** Non-admin users receive `{"detail":"The user doesn't have enough privileges"}` (403 Forbidden) on `/admin/*` endpoints.
+- **24 REST endpoints** covering events, attendees, RSVPs, analytics, auth, admin
+- **Event provenance** — `GET /events/{id}/provenance` returns full data lineage
+- **Import quality analytics** — `GET /admin/imports/quality` for import health monitoring
+- **Dialect-aware analytics** — SQLite and PostgreSQL both supported
+- **External dataset integration** — Leeds City Council event notices (XML/CSV)
 
 ---
 
-## 📊 Dataset Import
-
-Integrates **Leeds City Council Temporary Event Notices** (XML).
+## Running Tests
 
 ```bash
-# Via API (admin JWT required)
-curl -X POST "http://127.0.0.1:8000/admin/imports/run?source_type=xml" \
-  -H "Authorization: Bearer $TOKEN"
+pytest -q                    # 84 tests, <2s runtime
+pytest --cov=app             # 95% coverage
 ```
 
-**Provenance:** SHA256 hash stored; ImportRun table logs timestamp, duration, row counts.
-
----
-
-## 🧪 Running Tests
+**Quality gates:**
 
 ```bash
-pytest -q
-```
-
-**Result:** 41 tests passing (auth, events, attendees, RSVPs, analytics, admin, RBAC, middleware, ETag, headers, error handling)
-
----
-
-## 🛠 Quality Checks
-
-```bash
-pip install -r requirements-dev.txt
-bash scripts/quality_check.sh
-```
-
-Runs: ruff, mypy, bandit, pip-audit, pytest
-
----
-
-## 📁 Project Structure
-
-```
-comp3011-cw1-api/
-├── app/
-│   ├── api/            # Routes, analytics, admin
-│   ├── core/           # Auth, config, middleware, rate limiting
-│   ├── models.py       # SQLAlchemy models (User.is_admin, ImportRun)
-│   └── schemas.py      # Pydantic schemas
-├── scripts/
-│   ├── import_dataset.py   # XML/CSV import with provenance
-│   ├── make_admin.py       # Promote user to admin
-│   └── quality_check.sh    # Linting + testing
-├── tests/              # 41 test cases
-├── docs/               # PDF deliverables
-└── alembic/            # Migrations
+ruff check .                                                           # Linting (clean)
+mypy app scripts/import_dataset.py scripts/make_admin.py scripts/clean_db.py
+bandit -r app scripts -q                                               # Security scanning (clean)
+./scripts/quality_check.sh                                             # Full marker-style pipeline
 ```
 
 ---
 
-## 🛠 Tech Stack
+## API Endpoints
 
-| Component | Technology |
-|-----------|------------|
-| Framework | FastAPI |
-| Database | PostgreSQL (prod) / SQLite (dev) |
-| ORM | SQLAlchemy 2.x |
-| Migrations | Alembic |
-| Auth | JWT (python-jose) |
-| Testing | pytest |
-| Deployment | Render.com |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | /health | - | System health |
+| POST | /auth/register | - | Register user |
+| POST | /auth/login | - | Get JWT token |
+| GET | /events | - | List events (paginated, filterable) |
+| POST | /events | User | Create event |
+| GET | /events/{id} | - | Event detail |
+| GET | /events/{id}/provenance | - | Data lineage |
+| PATCH | /events/{id} | Owner/Admin | Update event |
+| DELETE | /events/{id} | Owner/Admin | Delete event |
+| GET | /events/{id}/stats | - | RSVP statistics |
+| POST | /events/{id}/rsvps | User | Create RSVP |
+| GET | /events/{id}/rsvps | - | List RSVPs |
+| DELETE | /events/{id}/rsvps/{rid} | User | Delete RSVP |
+| POST | /attendees | User | Register attendee |
+| GET | /attendees/{id} | - | Attendee detail |
+| GET | /attendees/{id}/events | - | Attendee's events |
+| GET | /analytics/events/seasonality | - | Monthly distribution |
+| GET | /analytics/events/trending | - | Trending events |
+| GET | /events/recommendations | User | Personalised recs |
+| POST | /admin/imports/run | Admin | Trigger import |
+| GET | /admin/imports | Admin | Import history |
+| GET | /admin/dataset/meta | Admin | Dataset metadata |
+| GET | /admin/imports/quality | Admin | Import analytics |
 
----
-
-## 👤 Author
-
-**Nathaniel Sebastian**  
-sc232ns@leeds.ac.uk  
-University of Leeds, School of Computing
+Full documentation: [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf)
 
 ---
 
