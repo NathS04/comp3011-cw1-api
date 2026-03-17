@@ -1,21 +1,20 @@
-
 #!/bin/bash
 set -e
 
-echo "Running Ruff..."
+echo "=== Ruff ==="
 ruff check .
 
-echo "Running Mypy..."
-mypy app
+echo "=== Mypy ==="
+mypy app scripts/import_dataset.py scripts/make_admin.py scripts/clean_db.py
 
-echo "Running Bandit..."
-bandit -r app -q
+echo "=== Bandit ==="
+bandit -r app scripts -q
 
-echo "Running Helpers..."
-if command -v pip-audit &> /dev/null; then
-    echo "Running pip-audit..."
-    pip-audit
-fi
-
-echo "Running Tests..."
+echo "=== Tests ==="
 pytest -q
+
+echo "=== Coverage ==="
+pytest --cov=app --cov-report=term-missing -q
+
+echo ""
+echo "All quality gates passed."

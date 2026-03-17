@@ -1,7 +1,10 @@
-from sqlalchemy.orm import Session
-from app.models import User
-from app.core.db import SessionLocal
 import sys
+
+from sqlalchemy.orm import Session
+
+from app.core.db import SessionLocal
+from app.models import User
+
 
 def make_admin(username: str):
     db: Session = SessionLocal()
@@ -10,7 +13,7 @@ def make_admin(username: str):
         if not user:
             print(f"User '{username}' not found.")
             sys.exit(1)
-        
+
         user.is_admin = True
         db.commit()
         db.refresh(user)

@@ -2,23 +2,45 @@ venv/
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment and secrets
 .env
+.env.*
+
+# Databases
 app.db
 *.db
+*.sqlite
+*.sqlite3
+
+# Testing and Coverage
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 htmlcov/
-site/
 .coverage
+
+# Builds and Packages
 dist/
 build/
 *.egg-info/
 node_modules/
 package-lock.json
 package.json
+site/
+
+# Submission Scripts/Temp
 generate-pdfs.js
 generate_slides.py
+
+# Generated / Built Archives
 comp3011-cw1-api_submission/
-comp3011-cw1-api_submission.zip
+comp3011-cw1-api_submission*.zip
 TECHNICAL_REPORT.html
 docs/*.html

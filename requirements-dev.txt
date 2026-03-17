@@ -4,3 +4,4 @@ mypy
 bandit
 pip-audit
 pytest-cov
+types-requests

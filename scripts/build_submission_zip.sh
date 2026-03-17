@@ -1,27 +1,35 @@
 #!/bin/bash
 set -e
 
-# 1. Clean first
-./scripts/clean_release.sh
-
-echo "📦 Building submission zip..."
+echo "Building submission zip..."
 
 ZIP_NAME="comp3011-cw1-api_submission_FINAL.zip"
-
-# Remove any existing zip
 rm -f "$ZIP_NAME"
 
-# 2. Create Zip with strict exclusions
+# Clean caches
+find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name "*.pyc" -delete 2>/dev/null || true
+
 zip -r "$ZIP_NAME" . \
     -x ".git/*" \
     -x ".gitignore" \
     -x ".venv/*" \
     -x "venv/*" \
+    -x "venv_test/*" \
+    -x "venv*/*" \
     -x "node_modules/*" \
     -x "*/__pycache__/*" \
     -x "__pycache__/*" \
+    -x "*.pyc" \
     -x ".pytest_cache/*" \
     -x "*/.pytest_cache/*" \
+    -x ".mypy_cache/*" \
+    -x "*/.mypy_cache/*" \
+    -x ".ruff_cache/*" \
+    -x "*/.ruff_cache/*" \
+    -x ".coverage" \
+    -x "coverage.xml" \
+    -x "htmlcov/*" \
     -x ".env" \
     -x ".env.example" \
     -x "*.db" \
@@ -35,6 +43,7 @@ zip -r "$ZIP_NAME" . \
     -x ".gemini/*" \
     -x ".antigravity/*" \
     -x ".antigravityignore" \
+    -x ".agent/*" \
     -x "verify/*" \
     -x "package.json" \
     -x "package-lock.json" \
@@ -45,19 +54,16 @@ zip -r "$ZIP_NAME" . \
     -x "*.html" \
     -x "docs/*.html" \
     -x "docs/appendix_genai_logs.md" \
-    -x ".agent/*" \
-    -x "scripts/clean_release.sh" \
-    -x "scripts/build_submission_zip.sh"
+    -x "scripts/clean_release.sh"
 
 echo ""
-echo "✅ Created $ZIP_NAME"
+echo "Created $ZIP_NAME"
 ls -lh "$ZIP_NAME"
 
 echo ""
-echo "📋 Contents check:"
 echo "--- Forbidden files (should be EMPTY) ---"
-zipinfo -1 "$ZIP_NAME" | grep -E "(\.git/|venv/|node_modules/|__pycache__|\.pytest_cache|\.env$|\.db$|\.html$|package\.json|package-lock|Brief|implementation_plan|task\.md|walkthrough\.md|appendix_genai)" || echo "CLEAN: No forbidden files found ✅"
+zipinfo -1 "$ZIP_NAME" | grep -E "(\.git/|venv/|node_modules/|__pycache__|\.pytest_cache|\.mypy_cache|\.ruff_cache|\.coverage$|coverage\.xml$|htmlcov/|\.env$|\.db$|\.html$|package\.json|package-lock|Brief|implementation_plan|task\.md|walkthrough\.md|appendix_genai)" || echo "CLEAN: No forbidden files found"
 
 echo ""
 echo "--- Key files (should be present) ---"
-zipinfo -1 "$ZIP_NAME" | grep -E "(README\.md|TECHNICAL_REPORT\.(md|pdf)|VERIFICATION|requirements\.txt|render\.yaml|app/main|tests/|docs/API_DOC|docs/GENAI|docs/PRESENTATION|docs/DATASET|scripts/import)" | head -20
+zipinfo -1 "$ZIP_NAME" | grep -E "(README\.md|TECHNICAL_REPORT\.(md|pdf)|VERIFICATION|requirements\.txt|render\.yaml|app/main|tests/|docs/API_DOC|docs/GENAI|docs/PRESENTATION|docs/DATASET|scripts/(import|quality|verify|build))" | head -25
