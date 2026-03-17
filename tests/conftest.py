@@ -3,18 +3,20 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from app.main import app
+
 from app.core.db import get_db
+from app.main import app
 from app.models import Base
 
 # In-memory SQLite for tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-from app.core.config import settings
+from app.core.config import settings  # noqa: E402
+
 settings.RATE_LIMIT_ENABLED = False  # Disable rate limiting for tests by default
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
+    SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )

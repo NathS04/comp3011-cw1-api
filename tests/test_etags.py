@@ -1,6 +1,4 @@
 
-from fastapi.testclient import TestClient
-from app.main import app
 
 
 def test_etag_events_list(client):
@@ -9,9 +7,9 @@ def test_etag_events_list(client):
     assert r.status_code == 200
     assert "ETag" in r.headers
     assert r.headers["Cache-Control"] == "no-cache"
-    
+
     etag = r.headers["ETag"]
-    
+
     # 2. Conditional Request -> 304 + Empty Body
     r2 = client.get("/events", headers={"If-None-Match": etag})
     assert r2.status_code == 304

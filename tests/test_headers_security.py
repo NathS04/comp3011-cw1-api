@@ -1,5 +1,4 @@
 
-import pytest
 
 def test_security_headers_200(client):
     r = client.get("/health")

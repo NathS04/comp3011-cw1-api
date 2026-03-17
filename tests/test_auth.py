@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+
 def test_register_user(client: TestClient):
     response = client.post(
         "/auth/register",
@@ -58,9 +59,41 @@ def test_login_non_existent_user(client: TestClient):
     assert response.status_code == 401
     assert response.json()["detail"] == "Incorrect username or password"
 
+def test_register_duplicate_email(client: TestClient):
+    client.post(
+        "/auth/register",
+        json={"username": "emaildup1", "email": "dup@example.com", "password": "password123"},
+    )
+    response = client.post(
+        "/auth/register",
+        json={"username": "emaildup2", "email": "dup@example.com", "password": "password123"},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Email already registered"
+
+
 def test_protected_route_without_token(client: TestClient):
     response = client.post(
         "/events",
         json={"title": "Test", "location": "Test", "start_time": "2026-01-01T10:00:00", "end_time": "2026-01-01T11:00:00", "capacity": 10},
     )
     assert response.status_code == 401
+
+
+def test_invalid_jwt_token(client: TestClient):
+    resp = client.get("/events/recommendations", headers={"Authorization": "Bearer invalid.token.here"})
+    assert resp.status_code == 401
+
+
+def test_expired_jwt_token(client: TestClient, db):
+    from datetime import timedelta
+
+    from app.core.auth import create_access_token
+
+    token = create_access_token(data={"sub": "nobody"}, expires_delta=timedelta(seconds=-10))
+    resp = client.post(
+        "/events",
+        json={"title": "T", "location": "L", "start_time": "2026-01-01T10:00:00", "end_time": "2026-01-01T11:00:00", "capacity": 10},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 401
