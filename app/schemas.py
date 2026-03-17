@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Literal, Generic, TypeVar, List
+from typing import Generic, List, Literal, Optional, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 
 T = TypeVar("T")
 
@@ -61,7 +61,7 @@ class EventUpdate(BaseModel):
     location: Optional[str] = Field(default=None, min_length=1, max_length=200)
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    capacity: Optional[int] = Field(default=None, ge=0)
+    capacity: Optional[int] = Field(default=None, ge=1)
 
     @field_validator("title", "location")
     @classmethod
@@ -154,7 +154,7 @@ class UserCreate(BaseModel):
             "example": {
                 "username": "janedoe",
                 "email": "jane@example.com",
-                "password": "strongpassword123"
+                "password": "strongpassword123"  # nosec B105
             }
         }
     }
@@ -178,7 +178,7 @@ class TokenData(BaseModel):
 class SeasonalityItem(BaseModel):
     month: str
     count: int
-    top_categories: List[str]
+    top_locations: List[str]
 
 class SeasonalityResponse(BaseModel):
     items: List[SeasonalityItem]
@@ -219,3 +219,47 @@ class ImportRunOut(BaseModel):
     rows_inserted: int
     sha256_hash: Optional[str]
     duration_ms: Optional[int]
+
+
+class EventProvenanceOut(BaseModel):
+    event_id: int
+    source_name: Optional[str] = None
+    source_url: Optional[str] = None
+    source_record_id: Optional[str] = None
+    import_run_id: Optional[int] = None
+    imported_at: Optional[datetime] = None
+    latest_import_at: Optional[datetime] = None
+    parser_version: Optional[str] = None
+    sha256_hash: Optional[str] = None
+    is_seeded: Optional[bool] = None
+    is_user_created: bool
+
+
+class ImportQualityItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    data_source_id: int
+    status: str
+    started_at: datetime
+    finished_at: Optional[datetime] = None
+    rows_read: int
+    rows_inserted: int
+    rows_updated: int
+    duration_ms: Optional[int] = None
+    error_count: int
+    sha256_hash: Optional[str] = None
+    parser_version: Optional[str] = None
+
+
+class ImportQualityResponse(BaseModel):
+    total_runs: int
+    successful_runs: int
+    failed_runs: int
+    success_rate: float
+    last_successful_import: Optional[datetime] = None
+    avg_duration_ms: Optional[float] = None
+    total_rows_read: int
+    total_rows_inserted: int
+    total_rows_updated: int
+    recent_failures_count: int
+    runs: List[ImportQualityItem]

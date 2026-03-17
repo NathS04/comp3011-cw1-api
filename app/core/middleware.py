@@ -1,14 +1,14 @@
+import hashlib
+import logging
 import time
 import uuid
-import logging
-import hashlib
-import json
-from typing import Callable
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse, StreamingResponse
+from starlette.responses import JSONResponse
+
 from .config import settings
-from .rate_limit import global_limiter, auth_limiter
+from .rate_limit import auth_limiter, global_limiter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # 1. Generate Request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        
+
         start_time = time.time()
 
         # Helper to ensure headers are always applied
@@ -39,11 +39,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # 2. Rate Limiting (Early Return)
         if settings.RATE_LIMIT_ENABLED:
-            client_ip = request.client.host
+            client_ip = request.client.host if request.client else "unknown"
             path = request.url.path
-            
+
             limiter = auth_limiter if path.startswith("/auth/login") else global_limiter
-            
+
             if not limiter.is_allowed(client_ip, path):
                 return add_headers(JSONResponse(
                     status_code=429,
@@ -69,11 +69,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response_body = b""
             async for chunk in response.body_iterator:
                 response_body += chunk
-            
+
             # Canonical JSON hashing (if it looks like JSON)
             # But simple SHA256 of bytes is robust enough for binary text too.
             etag = f'"{hashlib.sha256(response_body).hexdigest()}"'
-            
+
             # Check If-None-Match
             if request.headers.get("If-None-Match") == etag:
                 response = Response(status_code=304) # No body for 304
@@ -93,19 +93,20 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # 5. Logging
         process_time = time.time() - start_time
         logger.info(f"ReqID={request_id} {request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s")
-        
+
         return add_headers(response)
 
-from .exceptions import NotFoundException, DuplicateException, AuthException
+from .exceptions import AuthException, DuplicateException, NotFoundException  # noqa: E402
+
 
 async def global_exception_handler(request: Request, exc: Exception):
     # Retrieve request_id if available
     request_id = getattr(request.state, "request_id", "unknown")
 
-    # For these custom exceptions, we return simple JSON. 
+    # For these custom exceptions, we return simple JSON.
     # The middleware validly wraps these if they bubble up, BUT exception handlers
-    # in FastAPI run inside the middleware stack usually. 
-    # However, BaseHTTPMiddleware wraps the application. 
+    # in FastAPI run inside the middleware stack usually.
+    # However, BaseHTTPMiddleware wraps the application.
     # Exceptions handled by FastAPI's exception_handler are returned as responses *to* the middleware.
     # So add_headers WILL apply to these.
 

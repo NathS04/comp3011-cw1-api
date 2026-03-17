@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import List, Optional
 
-from sqlalchemy import String, DateTime, Integer, ForeignKey, UniqueConstraint, Boolean, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
+
 
 class Base(DeclarativeBase):
     pass
@@ -70,15 +71,19 @@ class Event(Base):
     capacity: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+    # Ownership
+    created_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+
     # Provenance fields
     source_id: Mapped[Optional[int]] = mapped_column(ForeignKey("data_sources.id"), nullable=True)
-    source_record_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True) # ID in the external system
+    source_record_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_seeded: Mapped[bool] = mapped_column(Boolean, default=False)
 
     rsvps: Mapped[List["RSVP"]] = relationship("RSVP", back_populates="event", cascade="all, delete-orphan")
     data_source: Mapped[Optional["DataSource"]] = relationship("DataSource", back_populates="events")
+    creator: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_user_id])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Event(title={self.title}, location={self.location})>"
 
 class Attendee(Base):
@@ -90,8 +95,10 @@ class Attendee(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(255), unique=True)
+    owner_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     rsvps: Mapped[List["RSVP"]] = relationship("RSVP", back_populates="attendee", cascade="all, delete-orphan")
+    owner: Mapped[Optional["User"]] = relationship("User", foreign_keys=[owner_user_id])
 
     def __repr__(self):
         return f"<Attendee(name={self.name}, email={self.email})>"

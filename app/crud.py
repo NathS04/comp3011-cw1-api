@@ -1,30 +1,28 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from .models import Event, Attendee, RSVP, User
-from .schemas import EventCreate, EventUpdate, AttendeeCreate, RSVPCreate, UserCreate
+from .models import RSVP, Attendee, Event, User
+from .schemas import AttendeeCreate, EventCreate, EventUpdate, RSVPCreate, UserCreate
 
-def create_event(db: Session, data: EventCreate) -> Event:
-    """
-    Create a new event in the database.
-    """
-    obj = Event(**data.model_dump())
+
+def create_event(db: Session, data: EventCreate, user_id: Optional[int] = None) -> Event:
+    obj = Event(**data.model_dump(), created_by_user_id=user_id)
     db.add(obj)
     db.commit()
     db.refresh(obj)
     return obj
 
 def list_events(
-    db: Session, 
-    q: Optional[str] = None, 
-    location: Optional[str] = None, 
-    start_after: Optional[datetime] = None, 
+    db: Session,
+    q: Optional[str] = None,
+    location: Optional[str] = None,
+    start_after: Optional[datetime] = None,
     start_before: Optional[datetime] = None,
     limit: int = 10,
     offset: int = 0,
@@ -52,7 +50,7 @@ def list_events(
             stmt = stmt.where(Event.start_time > now)
         elif status == "past":
             stmt = stmt.where(Event.start_time < now)
-    
+
     # Sorting
     if sort:
         desc = sort.startswith("-")
@@ -63,7 +61,7 @@ def list_events(
             stmt = stmt.order_by(field.desc() if desc else field.asc())
     else:
         stmt = stmt.order_by(Event.start_time.asc())
-        
+
     # Total count (efficient count)
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = db.scalar(count_stmt) or 0
@@ -71,7 +69,7 @@ def list_events(
     # Pagination
     stmt = stmt.limit(limit).offset(offset)
     items = list(db.execute(stmt).scalars().all())
-    
+
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 def get_event(db: Session, event_id: int):
@@ -89,11 +87,11 @@ def delete_event(db: Session, event: Event) -> None:
     db.delete(event)
     db.commit()
 
-def create_attendee(db: Session, data: AttendeeCreate) -> Attendee:
+def create_attendee(db: Session, data: AttendeeCreate, owner_user_id: Optional[int] = None) -> Attendee:
     """
     Register a new attendee.
     """
-    obj = Attendee(**data.model_dump())
+    obj = Attendee(**data.model_dump(), owner_user_id=owner_user_id)
     db.add(obj)
     try:
         db.commit()
@@ -129,9 +127,9 @@ def get_event_stats(db: Session, event: Event):
     # Ensure relationships are loaded if not present
     if 'rsvps' not in event.__dict__:
         db.refresh(event, ['rsvps'])
-    
-    total_rsvps = len(event.rsvps)
-    
+
+
+
     counts = {"going": 0, "maybe": 0, "not_going": 0}
     for rsvp in event.rsvps:
         if rsvp.status in counts:
