@@ -1,32 +1,42 @@
+# Virtual environments
 venv/
 .venv/
+
+# Python bytecode
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Editor config
 .idea/
 .vscode/
 
 # Environment and secrets
 .env
 .env.*
+.env.example
 
 # Databases
 app.db
+test.db
 *.db
 *.sqlite
 *.sqlite3
 
-# Testing and Coverage
+# Testing and coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 htmlcov/
 .coverage
+coverage.xml
 
-# Builds and Packages
+# Builds and packages
 dist/
 build/
 *.egg-info/
@@ -35,12 +45,33 @@ package-lock.json
 package.json
 site/
 
-# Submission Scripts/Temp
-generate-pdfs.js
-generate_slides.py
-
-# Generated / Built Archives
-comp3011-cw1-api_submission/
-comp3011-cw1-api_submission*.zip
+# Generated HTML intermediates
 TECHNICAL_REPORT.html
 docs/*.html
+
+# PDF generation tooling
+generate-pdfs.js
+generate_slides.py
+mdpdf.log
+
+# Submission artifacts (built from source)
+comp3011-cw1-api_submission/
+comp3011-cw1-api_submission*/
+comp3011-cw1-api_submission*.zip
+
+# Internal planning / working docs (not deliverables)
+task.md
+implementation_plan.md
+walkthrough.md
+docs/appendix_genai_logs.md
+scripts/clean_release.sh
+
+# Coursework brief (not a deliverable)
+COMP3011_Coursework1_Brief*.pdf
+brief.txt
+
+# AI tool caches
+.gemini/
+.antigravity/
+.antigravityignore
+.agent/

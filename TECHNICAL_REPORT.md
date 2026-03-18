@@ -12,6 +12,8 @@ EventHub is a REST API for event management with RSVP tracking, built with FastA
 
 **Repository:** [github.com/NathS04/comp3011-cw1-api](https://github.com/NathS04/comp3011-cw1-api) | **Live API:** [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com)
 
+**API Documentation:** [docs/API_DOCUMENTATION.pdf](https://github.com/NathS04/comp3011-cw1-api/blob/main/docs/API_DOCUMENTATION.pdf) | **Presentation Slides:** [docs/PRESENTATION_SLIDES.pptx](https://github.com/NathS04/comp3011-cw1-api/blob/main/docs/PRESENTATION_SLIDES.pptx)
+
 ## 2. Architecture
 
 ```
