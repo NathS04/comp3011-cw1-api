@@ -1,4 +1,8 @@
-# EventHub – Event & RSVP API
+# EventHub — Production-Style Event & RSVP API
+
+> **Backend engineering project built around production concerns rather than CRUD alone.** EventHub is a FastAPI REST API with **24 REST endpoints**, JWT authentication, role-based access control, PostgreSQL support, Leeds City Council data ingestion, provenance tracking, security controls, CI and **84 automated tests at ~95% coverage**.
+
+`Python` · `FastAPI` · `PostgreSQL` · `Alembic` · `JWT` · `REST API` · `Data Lineage` · `Pytest` · `Render`
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
@@ -7,23 +11,59 @@
 [![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A production-ready FastAPI REST API for event management, featuring **real-world data integration** from Leeds City Council, **secure role-based access control**, **data provenance tracking**, and **intelligent analytics**. Built for the COMP3011 Web Services coursework at the University of Leeds.
+---
+
+## 20-second project view
+
+| Dimension | Details |
+| :--- | :--- |
+| **Problem** | Build a maintainable event-management API with authentication, granular resource ownership, external-data ingestion and analytics. |
+| **Backend** | FastAPI + PostgreSQL/SQLite + Alembic migration engine. |
+| **Security** | JWT Bearer tokens, PBKDF2-SHA256 hashing, RBAC, owner/admin access control, rate limiting, security headers, defused XML. |
+| **API Architecture** | 24 REST endpoints covering events, attendees, RSVPs, analytics, auth and administrative dataset imports. |
+| **Testing & Quality** | 84 automated tests at ~95% coverage, clean Ruff linting, MyPy type checking, Bandit security scanning. |
+| **Live Deployment** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) (Swagger UI interactive documentation). |
 
 ---
 
-## Submission Deliverables
+## Engineering Decisions
 
-| Document | Format | Path |
-|----------|--------|------|
-| **Live API** | URL | [comp3011-cw1-api.onrender.com](https://comp3011-cw1-api.onrender.com) |
-| **API Documentation** | PDF | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
-| **Technical Report** | PDF | [TECHNICAL_REPORT.pdf](TECHNICAL_REPORT.pdf) |
-| **Presentation Slides** | PPTX | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
-| **GenAI Logs** | PDF | [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf) |
+- **Resource Ownership & RBAC:** Access control is enforced at both entity and role levels. `created_by_user_id` protects event modifications, while RSVP operations check owner, attendee, or admin privileges.
+- **Dialect-Aware Analytics:** SQL analytics queries (monthly seasonality, trending events) use dialect abstraction to run seamlessly on both SQLite (local development) and PostgreSQL (production).
+- **Data Provenance Tracking:** `GET /events/{id}/provenance` returns full data lineage records for ingested external events (source dataset, batch timestamp, import status).
+- **Safe External Ingestion:** Parser uses `defusedxml` to protect against XML External Entity (XXE) vulnerabilities when ingesting Leeds City Council public XML feeds.
+- **Conditional Caching & ETags:** Responses support SHA256 body hash ETags with `If-None-Match` validation, returning HTTP `304 Not Modified` to reduce server payload.
+- **Production Security & Error Sanitisation:** Middleware attaches UUID `X-Request-ID` headers to all responses and catches uncaught exceptions to output sanitized 500 error objects without exposing stack traces.
 
 ---
 
-## Quickstart
+## Key Features & Endpoints
+
+| Category | Method & Endpoint | Auth | Description |
+| :--- | :--- | :--- | :--- |
+| **Auth** | `POST /auth/register`<br>`POST /auth/login` | None | User registration and JWT token issuance |
+| **Events** | `GET /events`<br>`POST /events`<br>`GET /events/{id}`<br>`PATCH /events/{id}`<br>`DELETE /events/{id}` | Mixed | Paginated filtering, CRUD with strict owner/admin access control |
+| **Provenance** | `GET /events/{id}/provenance` | None | Full data lineage and source tracking for ingested datasets |
+| **RSVPs** | `POST /events/{id}/rsvps`<br>`GET /events/{id}/rsvps`<br>`DELETE /events/{id}/rsvps/{rid}` | Authenticated | Attendee reservation and status management |
+| **Analytics** | `GET /analytics/events/seasonality`<br>`GET /analytics/events/trending`<br>`GET /events/recommendations` | Mixed | Event popularity stats, monthly distribution, and user recommendations |
+| **Admin Imports** | `POST /admin/imports/run`<br>`GET /admin/imports`<br>`GET /admin/imports/quality` | Admin | Ingestion runner, batch status history, and data-quality metrics |
+
+---
+
+## Security Controls Matrix
+
+| Feature | Implementation Detail |
+| :--- | :--- |
+| **Authentication** | JWT Bearer (HS256, 30-min expiry) |
+| **Password Hashing** | PBKDF2-SHA256 via Passlib |
+| **RBAC** | Anonymous (read), Authenticated (CRUD), Admin (imports) |
+| **Rate Limiting** | 120 req/min global, 10 req/min login endpoint |
+| **Security Headers** | `X-Request-ID`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `CORP` |
+| **XML Safety** | `defusedxml` protection against XXE attacks |
+
+---
+
+## Quickstart & Verification
 
 ```bash
 git clone https://github.com/NathS04/comp3011-cw1-api.git && cd comp3011-cw1-api
@@ -36,96 +76,43 @@ pytest -q                    # Expected: 84 passed
 uvicorn app.main:app --reload
 ```
 
-**Verification:** See [VERIFICATION_INSTRUCTIONS.md](VERIFICATION_INSTRUCTIONS.md) for full marker instructions.
+### Running Test Suite & Quality Gates
+
+```bash
+pytest -q                    # 84 tests, <2s runtime
+pytest --cov=app             # 95% test coverage
+ruff check .                 # Static linting
+bandit -r app scripts -q     # Security code scanner
+```
 
 ---
 
 ## Deployment (Render)
 
-**Live API:** https://comp3011-cw1-api.onrender.com
+**Live Interactive Documentation:** [https://comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs)
 
-> **Note:** Free tier spins down after 15 min inactivity. First request may take 30-60s (cold start).
-
-- `render.yaml` provisions managed PostgreSQL
-- Environment: `DATABASE_URL`, `SECRET_KEY`, `ENVIRONMENT=prod`
-
----
-
-## Security
-
-| Feature | Implementation |
-|---------|---------------|
-| **Authentication** | JWT Bearer (HS256, 30-min expiry) |
-| **Password Hashing** | PBKDF2-SHA256 |
-| **RBAC** | Anonymous (read), Authenticated (CRUD), Admin (imports) |
-| **Event Ownership** | `created_by_user_id`; only owner or admin can PATCH/DELETE |
-| **Attendee / RSVP Ownership** | Attendees store `owner_user_id`; RSVP create/delete is restricted to attendee owner, event owner, or admin as appropriate |
-| **Rate Limiting** | 120/min global, 10/min login |
-| **Security Headers** | X-Request-ID, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, CORP |
-| **ETag Caching** | SHA256 body hash; `If-None-Match` returns 304 (RFC 7232) |
-| **Error Sanitisation** | Generic 500 with `request_id`; no stack traces |
-| **XML Safety** | `defusedxml` prevents XXE attacks |
+- `render.yaml` defines the infrastructure-as-code deployment on Render.
+- Managed PostgreSQL database backed by Alembic migration scripts.
+- *Note:* Free tier spins down after 15 minutes of inactivity; initial cold-start request may take 30-60 seconds.
 
 ---
 
-## Key Features
+## Academic & Coursework Deliverables
 
-- **24 REST endpoints** covering events, attendees, RSVPs, analytics, auth, admin
-- **Event provenance** — `GET /events/{id}/provenance` returns full data lineage
-- **Import quality analytics** — `GET /admin/imports/quality` for import health monitoring
-- **Dialect-aware analytics** — SQLite and PostgreSQL both supported
-- **External dataset integration** — Leeds City Council event notices (XML/CSV)
+This project was originally submitted for COMP3011 Web Services at the University of Leeds (2025/26).
 
----
-
-## Running Tests
-
-```bash
-pytest -q                    # 84 tests, <2s runtime
-pytest --cov=app             # 95% coverage
-```
-
-**Quality gates:**
-
-```bash
-ruff check .                                                           # Linting (clean)
-mypy app scripts/import_dataset.py scripts/make_admin.py scripts/clean_db.py
-bandit -r app scripts -q                                               # Security scanning (clean)
-./scripts/quality_check.sh                                             # Full marker-style pipeline
-```
+| Deliverable | Format | Location |
+| :--- | :--- | :--- |
+| **Technical Report** | PDF | [TECHNICAL_REPORT.pdf](TECHNICAL_REPORT.pdf) |
+| **API Documentation** | PDF | [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf) |
+| **Verification Guide** | Markdown | [VERIFICATION_INSTRUCTIONS.md](VERIFICATION_INSTRUCTIONS.md) |
+| **Presentation Slides** | PPTX | [docs/PRESENTATION_SLIDES.pptx](docs/PRESENTATION_SLIDES.pptx) |
 
 ---
 
-## API Endpoints
+## Related Portfolio Work
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | /health | - | System health |
-| POST | /auth/register | - | Register user |
-| POST | /auth/login | - | Get JWT token |
-| GET | /events | - | List events (paginated, filterable) |
-| POST | /events | User | Create event |
-| GET | /events/{id} | - | Event detail |
-| GET | /events/{id}/provenance | - | Data lineage |
-| PATCH | /events/{id} | Owner/Admin | Update event |
-| DELETE | /events/{id} | Owner/Admin | Delete event |
-| GET | /events/{id}/stats | - | RSVP statistics |
-| POST | /events/{id}/rsvps | User | Create RSVP |
-| GET | /events/{id}/rsvps | - | List RSVPs |
-| DELETE | /events/{id}/rsvps/{rid} | User | Delete RSVP |
-| POST | /attendees | User | Register attendee |
-| GET | /attendees/{id} | - | Attendee detail |
-| GET | /attendees/{id}/events | - | Attendee's events |
-| GET | /analytics/events/seasonality | - | Monthly distribution |
-| GET | /analytics/events/trending | - | Trending events |
-| GET | /events/recommendations | User | Personalised recs |
-| POST | /admin/imports/run | Admin | Trigger import |
-| GET | /admin/imports | Admin | Import history |
-| GET | /admin/dataset/meta | Admin | Dataset metadata |
-| GET | /admin/imports/quality | Admin | Import analytics |
+- [Policy Copilot](https://github.com/NathS04/policy_copilot_submission) — Audit-Ready RAG with Citation Enforcement & Evaluation Harness
+- [Ledger Data Quality](https://github.com/NathS04/ledger-data-quality) — Python + SQL Financial Data Controls & Reconciliation Pipeline
+- [Search Engine Tool](https://github.com/NathS04/comp3011-cw2-api) — Web Crawler, Positional Inverted Index & TF-IDF Ranking Engine
 
-Full documentation: [docs/API_DOCUMENTATION.pdf](docs/API_DOCUMENTATION.pdf)
-
----
-
-*Built with AI assistance – See [docs/GENAI_EXPORT_LOGS.pdf](docs/GENAI_EXPORT_LOGS.pdf) for disclosure*
