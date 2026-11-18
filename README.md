@@ -2,7 +2,7 @@
 
 > A University of Leeds coursework project demonstrating a FastAPI backend with authentication, resource ownership, event and RSVP management, external-data imports and provenance. The repository contains 24 REST endpoints and an automated test suite. This is an academic portfolio project, not a deployed client service.
 
-[Portfolio — Future](https://nathaniel-sebastian-portfolio.nathannn-s04.chatgpt.site/) · [About Nathaniel Sebastian](https://github.com/NathS04)
+[Portfolio — Future](https://future-nathaniel.pages.dev/) · [About Nathaniel Sebastian](https://github.com/NathS04)
 
 
 `Python` · `FastAPI` · `PostgreSQL` · `Alembic` · `JWT` · `REST API` · `Data Lineage` · `Pytest` · `Render`
