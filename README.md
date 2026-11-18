@@ -1,14 +1,15 @@
-# EventHub — Production-Style Event & RSVP API
+# EventHub — Event and RSVP API
 
-> **Backend engineering project built around production concerns rather than CRUD alone.** EventHub is a FastAPI REST API with **24 REST endpoints**, JWT authentication, role-based access control, PostgreSQL support, Leeds City Council data ingestion, provenance tracking, security controls, CI and **84 automated tests at ~95% coverage**.
+> A University of Leeds coursework project demonstrating a FastAPI backend with authentication, resource ownership, event and RSVP management, external-data imports and provenance. The repository contains 24 REST endpoints and an automated test suite. This is an academic portfolio project, not a deployed client service.
+
+[Portfolio — Future](https://nathaniel-sebastian-portfolio.nathannn-s04.chatgpt.site/) · [About Nathaniel Sebastian](https://github.com/NathS04)
+
 
 `Python` · `FastAPI` · `PostgreSQL` · `Alembic` · `JWT` · `REST API` · `Data Lineage` · `Pytest` · `Render`
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-green.svg)](https://fastapi.tiangolo.com)
 [![CI](https://github.com/NathS04/comp3011-cw1-api/actions/workflows/ci.yml/badge.svg)](https://github.com/NathS04/comp3011-cw1-api/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/Tests-84%20passing-brightgreen.svg)](#running-tests)
-[![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)](#running-tests)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -21,8 +22,8 @@
 | **Backend** | FastAPI + PostgreSQL/SQLite + Alembic migration engine. |
 | **Security** | JWT Bearer tokens, PBKDF2-SHA256 hashing, RBAC, owner/admin access control, rate limiting, security headers, defused XML. |
 | **API Architecture** | 24 REST endpoints covering events, attendees, RSVPs, analytics, auth and administrative dataset imports. |
-| **Testing & Quality** | 84 automated tests at ~95% coverage, clean Ruff linting, MyPy type checking, Bandit security scanning. |
-| **Live Deployment** | [comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs) (Swagger UI interactive documentation). |
+| **Testing & Quality** | CI runs pytest with coverage, Ruff, mypy and Bandit. The recorded 7 September 2026 run passed all 84 tests; use the CI badge for current status. |
+| **Run and inspect** | Run locally using the quickstart; interactive API documentation is served at `/docs`. Render deployment configuration is included in `render.yaml`. |
 
 ---
 
@@ -69,31 +70,29 @@
 git clone https://github.com/NathS04/comp3011-cw1-api.git && cd comp3011-cw1-api
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 export DATABASE_URL="sqlite:///./app.db" SECRET_KEY="dev-key-change-me"
 alembic upgrade head
-pytest -q                    # Expected: 84 passed
+pytest -q                    # See the test output for the current count
 uvicorn app.main:app --reload
 ```
 
 ### Running Test Suite & Quality Gates
 
 ```bash
-pytest -q                    # 84 tests, <2s runtime
-pytest --cov=app             # 95% test coverage
+pytest -q
+pytest --cov=app --cov-report=term-missing
 ruff check .                 # Static linting
-bandit -r app scripts -q     # Security code scanner
+mypy app scripts/import_dataset.py scripts/make_admin.py scripts/clean_db.py
+bandit -c pyproject.toml -r app scripts -q     # Security code scanner
 ```
 
 ---
 
 ## Deployment (Render)
 
-**Live Interactive Documentation:** [https://comp3011-cw1-api.onrender.com/docs](https://comp3011-cw1-api.onrender.com/docs)
-
-- `render.yaml` defines the infrastructure-as-code deployment on Render.
-- Managed PostgreSQL database backed by Alembic migration scripts.
-- *Note:* Free tier spins down after 15 minutes of inactivity; initial cold-start request may take 30-60 seconds.
+`render.yaml` describes a Render deployment with PostgreSQL and Alembic migrations. A currently available public demo has not been verified. Use the local quickstart to inspect the API and its `/docs` page.
 
 ---
 
@@ -112,7 +111,7 @@ This project was originally submitted for COMP3011 Web Services at the Universit
 
 ## Related Portfolio Work
 
-- [Policy Copilot](https://github.com/NathS04/policy_copilot_submission) — Audit-Ready RAG with Citation Enforcement & Evaluation Harness
+- [Policy Copilot](https://github.com/NathS04/policy_copilot_submission) — Academic policy-question-answering prototype with evidence checks and evaluation
 - [Ledger Data Quality](https://github.com/NathS04/ledger-data-quality) — Python + SQL Financial Data Controls & Reconciliation Pipeline
 - [Search Engine Tool](https://github.com/NathS04/comp3011-cw2-api) — Web Crawler, Positional Inverted Index & TF-IDF Ranking Engine
 
